@@ -1,0 +1,121 @@
+$date
+	Wed May 20 17:42:29 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module bz_tb $end
+$var wire 16 ! bz_new [15:0] $end
+$var parameter 32 " FP_WIDTH $end
+$var parameter 32 # FRAC_BITS $end
+$var reg 16 $ C_B [15:0] $end
+$var reg 16 % bz_old [15:0] $end
+$var reg 1 & clk $end
+$var reg 16 ' ey_left [15:0] $end
+$var reg 16 ( ey_right [15:0] $end
+$scope module bz_test $end
+$var wire 16 ) C_B [15:0] $end
+$var wire 16 * bz_old [15:0] $end
+$var wire 1 & clk $end
+$var wire 16 + ey_left [15:0] $end
+$var wire 16 , ey_right [15:0] $end
+$var wire 33 - bz_untruncated [32:0] $end
+$var wire 16 . bz_truncated [15:0] $end
+$var parameter 32 / FP_WIDTH $end
+$var parameter 32 0 FRAC_BITS $end
+$var reg 16 1 bz_1_reg [15:0] $end
+$var reg 16 2 bz_new [15:0] $end
+$var reg 17 3 difference_reg [16:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b1101 0
+b10000 /
+b1101 #
+b10000 "
+$end
+#0
+$dumpvars
+bx 3
+bx 2
+bx 1
+bx .
+bx -
+b0 ,
+b0 +
+b0 *
+b101100110011 )
+b0 (
+b0 '
+0&
+b0 %
+b101100110011 $
+bx !
+$end
+#5000
+b0 .
+b0 1
+b0 -
+b0 3
+1&
+#10000
+0&
+#15000
+b0 !
+b0 2
+1&
+#20000
+0&
+#25000
+1&
+#30000
+0&
+#35000
+1&
+#40000
+0&
+b1000000000000 %
+b1000000000000 *
+b10000000000000 (
+b10000000000000 ,
+b10000000000000 '
+b10000000000000 +
+#45000
+b1000000000000 1
+1&
+#50000
+0&
+#55000
+b1000000000000 !
+b1000000000000 2
+1&
+#60000
+0&
+#65000
+1&
+#70000
+0&
+b1000000000000 '
+b1000000000000 +
+#75000
+b10110011001 .
+b101100110011000000000000 -
+b1000000000000 3
+1&
+#80000
+0&
+#85000
+b101001100111 !
+b101001100111 2
+1&
+#90000
+0&
+#95000
+1&
+#100000
+0&
