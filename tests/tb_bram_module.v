@@ -8,15 +8,23 @@ module tb_bram_module;
     reg clk = 1'b0;
     reg rst = 1'b1;
 
-    reg                  we_a = 1'b0;
-    reg [ADDR_WIDTH-1:0] addr_a = {ADDR_WIDTH{1'b0}};
-    reg [WIDTH-1:0]      din_a = {WIDTH{1'b0}};
-    wire [WIDTH-1:0]     dout_a;
+    reg [ADDR_WIDTH-1:0] ey_rd_addr_0 = {ADDR_WIDTH{1'b0}};
+    reg [ADDR_WIDTH-1:0] ey_rd_addr_1 = {ADDR_WIDTH{1'b0}};
+    wire [WIDTH-1:0]     ey_rd_data_0;
+    wire [WIDTH-1:0]     ey_rd_data_1;
 
-    reg                  we_b = 1'b0;
-    reg [ADDR_WIDTH-1:0] addr_b = {ADDR_WIDTH{1'b0}};
-    reg [WIDTH-1:0]      din_b = {WIDTH{1'b0}};
-    wire [WIDTH-1:0]     dout_b;
+    reg [ADDR_WIDTH-1:0] bz_rd_addr_0 = {ADDR_WIDTH{1'b0}};
+    reg [ADDR_WIDTH-1:0] bz_rd_addr_1 = {ADDR_WIDTH{1'b0}};
+    wire [WIDTH-1:0]     bz_rd_data_0;
+    wire [WIDTH-1:0]     bz_rd_data_1;
+
+    reg                  ey_we = 1'b0;
+    reg [ADDR_WIDTH-1:0] ey_wr_addr = {ADDR_WIDTH{1'b0}};
+    reg [WIDTH-1:0]      ey_wr_data = {WIDTH{1'b0}};
+
+    reg                  bz_we = 1'b0;
+    reg [ADDR_WIDTH-1:0] bz_wr_addr = {ADDR_WIDTH{1'b0}};
+    reg [WIDTH-1:0]      bz_wr_data = {WIDTH{1'b0}};
 
     bram_module #(
         .DEPTH(DEPTH),
@@ -25,14 +33,20 @@ module tb_bram_module;
     ) dut (
         .clk(clk),
         .rst(rst),
-        .we_a(we_a),
-        .addr_a(addr_a),
-        .din_a(din_a),
-        .dout_a(dout_a),
-        .we_b(we_b),
-        .addr_b(addr_b),
-        .din_b(din_b),
-        .dout_b(dout_b)
+        .ey_rd_addr_0(ey_rd_addr_0),
+        .ey_rd_data_0(ey_rd_data_0),
+        .ey_rd_addr_1(ey_rd_addr_1),
+        .ey_rd_data_1(ey_rd_data_1),
+        .bz_rd_addr_0(bz_rd_addr_0),
+        .bz_rd_data_0(bz_rd_data_0),
+        .bz_rd_addr_1(bz_rd_addr_1),
+        .bz_rd_data_1(bz_rd_data_1),
+        .ey_we(ey_we),
+        .ey_wr_addr(ey_wr_addr),
+        .ey_wr_data(ey_wr_data),
+        .bz_we(bz_we),
+        .bz_wr_addr(bz_wr_addr),
+        .bz_wr_data(bz_wr_data)
     );
 
     always #5 clk = ~clk;
@@ -40,7 +54,7 @@ module tb_bram_module;
     task check_word;
         input [WIDTH-1:0] actual;
         input [WIDTH-1:0] expected;
-        input [8*32-1:0] label;
+        input [8*40-1:0] label;
         begin
             if (actual !== expected) begin
                 $display("BRAM_FAIL %0s expected=%h actual=%h", label, expected, actual);
@@ -50,44 +64,80 @@ module tb_bram_module;
     endtask
 
     initial begin
-        $dumpfile("build/bram_module.vcd");
+        $dumpfile("bram_module.vcd");
         $dumpvars(0, tb_bram_module);
 
         repeat (2) @(posedge clk);
         rst = 1'b0;
 
         @(negedge clk);
-        addr_a = 6'd3;
-        din_a = 16'h1234;
-        we_a = 1'b1;
-        addr_b = 6'd5;
-        din_b = 16'hcafe;
-        we_b = 1'b1;
+        ey_we = 1'b1;
+        ey_wr_addr = 6'd3;
+        ey_wr_data = 16'h1111;
+        bz_we = 1'b1;
+        bz_wr_addr = 6'd5;
+        bz_wr_data = 16'haaaa;
 
         @(posedge clk);
         #1;
-        check_word(dout_a, 16'h1234, "ey write-first");
-        check_word(dout_b, 16'hcafe, "bz write-first");
 
         @(negedge clk);
-        we_a = 1'b0;
-        we_b = 1'b0;
-        din_a = 16'h0000;
-        din_b = 16'h0000;
+        ey_wr_addr = 6'd4;
+        ey_wr_data = 16'h2222;
+        bz_wr_addr = 6'd6;
+        bz_wr_data = 16'hbbbb;
 
         @(posedge clk);
         #1;
-        check_word(dout_a, 16'h1234, "ey readback");
-        check_word(dout_b, 16'hcafe, "bz readback");
 
         @(negedge clk);
-        addr_a = 6'd4;
-        addr_b = 6'd6;
+        ey_we = 1'b0;
+        bz_we = 1'b0;
+        ey_rd_addr_0 = 6'd3;
+        ey_rd_addr_1 = 6'd4;
+        bz_rd_addr_0 = 6'd5;
+        bz_rd_addr_1 = 6'd6;
 
         @(posedge clk);
         #1;
-        check_word(dout_a, 16'h0000, "ey init zero");
-        check_word(dout_b, 16'h0000, "bz init zero");
+        check_word(ey_rd_data_0, 16'h1111, "ey read port 0");
+        check_word(ey_rd_data_1, 16'h2222, "ey read port 1");
+        check_word(bz_rd_data_0, 16'haaaa, "bz read port 0");
+        check_word(bz_rd_data_1, 16'hbbbb, "bz read port 1");
+
+        @(negedge clk);
+        ey_rd_addr_0 = 6'd7;
+        ey_rd_addr_1 = 6'd7;
+        ey_we = 1'b1;
+        ey_wr_addr = 6'd7;
+        ey_wr_data = 16'h3333;
+        bz_rd_addr_0 = 6'd8;
+        bz_rd_addr_1 = 6'd8;
+        bz_we = 1'b1;
+        bz_wr_addr = 6'd8;
+        bz_wr_data = 16'hcccc;
+
+        @(posedge clk);
+        #1;
+        check_word(ey_rd_data_0, 16'h3333, "ey same-cycle bypass port 0");
+        check_word(ey_rd_data_1, 16'h3333, "ey same-cycle bypass port 1");
+        check_word(bz_rd_data_0, 16'hcccc, "bz same-cycle bypass port 0");
+        check_word(bz_rd_data_1, 16'hcccc, "bz same-cycle bypass port 1");
+
+        @(negedge clk);
+        ey_we = 1'b0;
+        bz_we = 1'b0;
+        ey_rd_addr_0 = 6'd10;
+        ey_rd_addr_1 = 6'd11;
+        bz_rd_addr_0 = 6'd12;
+        bz_rd_addr_1 = 6'd13;
+
+        @(posedge clk);
+        #1;
+        check_word(ey_rd_data_0, 16'h0000, "ey zero init port 0");
+        check_word(ey_rd_data_1, 16'h0000, "ey zero init port 1");
+        check_word(bz_rd_data_0, 16'h0000, "bz zero init port 0");
+        check_word(bz_rd_data_1, 16'h0000, "bz zero init port 1");
 
         $display("BRAM_PASS");
         $finish;
