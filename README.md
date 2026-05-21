@@ -25,6 +25,8 @@ Current focus on a 1D FDTD solver with the following specifications:
 - **Boundary Conditions**: Zero boundaries (causing reflections)
 
 See [1D FDTD Reference](docs/1d_fdtd_reference.md) for detailed specifications.
+For a teammate-friendly walkthrough of the active FPGA architecture, see
+[1D FDTD MVP Architecture Guide](docs/1D_FDTD_MVP_ARCHITECTURE.md).
 
 ## Status
 
