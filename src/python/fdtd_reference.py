@@ -30,6 +30,11 @@ def q313_to_float(value: int) -> float:
     return value / Q_SCALE
 
 
+def q313_saturate(value: int) -> int:
+    """Clamp an integer to signed 16-bit Q3.13 range."""
+    return int(np.clip(int(value), -(2**15), 2**15 - 1))
+
+
 class FDTD1DSolver:
     """1D FDTD Solver with Q3.13 Fixed-Point Arithmetic"""
     
@@ -62,8 +67,8 @@ class FDTD1DSolver:
     
     def q313_multiply(self, a: int, b: int) -> int:
         """Multiply two Q3.13 numbers."""
-        product = (a * b) >> Q_FRACTION_BITS
-        return int(np.clip(product, -(2**15), 2**15 - 1))
+        product = (int(a) * int(b)) >> Q_FRACTION_BITS
+        return q313_saturate(product)
     
     def source_signal(self, time: float) -> float:
         """
@@ -93,7 +98,7 @@ class FDTD1DSolver:
         for k in range(1, self.num_cells - 1):
             dh = bz_new[k + 1] - bz_new[k]
             delta_h = self.q313_multiply(self.ce, dh)
-            ey_new[k] = self.ey[k] + delta_h
+            ey_new[k] = q313_saturate(int(self.ey[k]) + delta_h)
         
         # Apply hard source
         ey_new[source_index] = source_value
@@ -102,7 +107,7 @@ class FDTD1DSolver:
         for k in range(self.num_cells - 1):
             de = ey_new[k] - ey_new[k + 1]
             delta_e = self.q313_multiply(self.cm, de)
-            bz_new[k] = self.bz[k] + delta_e
+            bz_new[k] = q313_saturate(int(self.bz[k]) + delta_e)
         
         # Boundary conditions (zero at edges)
         ey_new[0] = 0
