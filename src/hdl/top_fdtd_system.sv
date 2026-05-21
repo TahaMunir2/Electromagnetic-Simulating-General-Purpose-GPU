@@ -227,7 +227,6 @@ module top_fdtd_system #(
             top_state       <= TOP_IDLE;
             fsm_start       <= 1'b0;
             init_idx        <= {ADDR_WIDTH{1'b0}};
-            iteration_count <= 16'd0;
         end else begin
             fsm_start <= 1'b0;
 
@@ -235,7 +234,6 @@ module top_fdtd_system #(
                 TOP_IDLE: begin
                     init_idx        <= {ADDR_WIDTH{1'b0}};
                     if (start) begin
-                        iteration_count <= 16'd0;
                         top_state <= TOP_INIT;
                     end
                 end
@@ -259,7 +257,6 @@ module top_fdtd_system #(
                 TOP_DONE: begin
                     if (start) begin
                         init_idx        <= {ADDR_WIDTH{1'b0}};
-                        iteration_count <= 16'd0;
                         top_state       <= TOP_INIT;
                     end
                 end
@@ -298,7 +295,19 @@ module top_fdtd_system #(
     end
 
     always_ff @(posedge clk) begin
-        if (rst || !solver_enable) begin
+        if (rst) begin
+            solver_state <= SOLVER_IDLE;
+            solver_done  <= 1'b0;
+            cell_idx     <= FIRST_ACTIVE_CELL;
+            field_pass   <= FIELD_EY;
+            iteration_count <= 16'd0;
+        end else if (((top_state == TOP_IDLE) || (top_state == TOP_DONE)) && start) begin
+            solver_state <= SOLVER_IDLE;
+            solver_done  <= 1'b0;
+            cell_idx     <= FIRST_ACTIVE_CELL;
+            field_pass   <= FIELD_EY;
+            iteration_count <= 16'd0;
+        end else if (!solver_enable) begin
             solver_state <= SOLVER_IDLE;
             solver_done  <= 1'b0;
             cell_idx     <= FIRST_ACTIVE_CELL;
