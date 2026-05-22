@@ -25,10 +25,8 @@ module top_fdtd_system #(
     output logic signed [DATA_WIDTH-1:0] bz_probe
 );
 
-    localparam logic [ADDR_WIDTH-1:0] ADDR_ONE          = {{(ADDR_WIDTH-1){1'b0}}, 1'b1};
-    localparam logic [ADDR_WIDTH-1:0] FIRST_ACTIVE_CELL = {{(ADDR_WIDTH-1){1'b0}}, 1'b1};
-    localparam logic [ADDR_WIDTH-1:0] LAST_INIT_ADDR    = {ADDR_WIDTH{1'b1}};
-    localparam logic [ADDR_WIDTH-1:0] LAST_ACTIVE_CELL  = LAST_INIT_ADDR - ADDR_ONE;
+    localparam logic [ADDR_WIDTH-1:0] ADDR_ONE       = {{(ADDR_WIDTH-1){1'b0}}, 1'b1};
+    localparam logic [ADDR_WIDTH-1:0] LAST_INIT_ADDR = {ADDR_WIDTH{1'b1}};
 
     typedef enum logic [1:0] {
         TOP_IDLE,
@@ -37,31 +35,15 @@ module top_fdtd_system #(
         TOP_DONE
     } top_state_t;
 
-    typedef enum logic [2:0] {
-        SOLVER_IDLE,
-        SOLVER_READ,
-        SOLVER_PIPE1,
-        SOLVER_PIPE2,
-        SOLVER_WRITE,
-        SOLVER_DONE_WAIT
-    } solver_state_t;
-
-    typedef enum logic {
-        FIELD_EY,
-        FIELD_BZ
-    } field_pass_t;
-
     top_state_t top_state;
-    solver_state_t solver_state;
-    field_pass_t field_pass;
 
-    logic fsm_rst;
-    logic fsm_start;
-    logic fsm_done;
-    logic cordic_enable;
-    logic solver_enable;
-    logic cordic_done;
-    logic solver_done;
+    logic        fsm_rst;
+    logic        fsm_start;
+    logic        fsm_done;
+    logic        cordic_enable;
+    logic        solver_enable;
+    logic        cordic_done;
+    logic        solver_done;
 
     logic [15:0] phase_acc;
     logic [15:0] cordic_phase_in;
@@ -72,16 +54,11 @@ module top_fdtd_system #(
     logic        cordic_inflight;
 
     logic [ADDR_WIDTH-1:0] init_idx;
-    logic [ADDR_WIDTH-1:0] cell_idx;
 
-    logic [ADDR_WIDTH-1:0] ey_rd_addr_0;
-    logic [ADDR_WIDTH-1:0] ey_rd_addr_1;
-    logic [DATA_WIDTH-1:0] ey_rd_data_0;
-    logic [DATA_WIDTH-1:0] ey_rd_data_1;
-    logic [ADDR_WIDTH-1:0] bz_rd_addr_0;
-    logic [ADDR_WIDTH-1:0] bz_rd_addr_1;
-    logic [DATA_WIDTH-1:0] bz_rd_data_0;
-    logic [DATA_WIDTH-1:0] bz_rd_data_1;
+    logic [ADDR_WIDTH-1:0] ey_rd_addr_0, ey_rd_addr_1;
+    logic [DATA_WIDTH-1:0] ey_rd_data_0, ey_rd_data_1;
+    logic [ADDR_WIDTH-1:0] bz_rd_addr_0, bz_rd_addr_1;
+    logic [DATA_WIDTH-1:0] bz_rd_data_0, bz_rd_data_1;
     logic                  ey_we;
     logic [ADDR_WIDTH-1:0] ey_wr_addr;
     logic [DATA_WIDTH-1:0] ey_wr_data;
@@ -89,26 +66,43 @@ module top_fdtd_system #(
     logic [ADDR_WIDTH-1:0] bz_wr_addr;
     logic [DATA_WIDTH-1:0] bz_wr_data;
 
-    logic signed [DATA_WIDTH-1:0] engine_ey_new;
-    logic signed [DATA_WIDTH-1:0] engine_bz_new;
-    logic signed [DATA_WIDTH-1:0] engine_ey_old;
-    logic signed [DATA_WIDTH-1:0] engine_ey_right;
-    logic signed [DATA_WIDTH-1:0] engine_bz_old;
-    logic signed [DATA_WIDTH-1:0] engine_bz_left;
-    logic signed [DATA_WIDTH-1:0] engine_bz_right;
+    logic [ADDR_WIDTH-1:0] solver_ey_rd_addr, solver_ey_wr_addr;
+    logic [DATA_WIDTH-1:0] solver_ey_wr_data;
+    logic                  solver_ey_we;
+    logic [ADDR_WIDTH-1:0] solver_bz_rd_addr, solver_bz_wr_addr;
+    logic [DATA_WIDTH-1:0] solver_bz_wr_data;
+    logic                  solver_bz_we;
 
     assign fsm_rst     = rst || (top_state != TOP_RUN);
     assign busy        = (top_state == TOP_INIT) || (top_state == TOP_RUN);
     assign done        = (top_state == TOP_DONE);
-    assign state_debug = {top_state, solver_state[1:0]};
-    assign cell_debug  = cell_idx;
-    assign ey_probe    = $signed(ey_rd_data_0);
-    assign bz_probe    = $signed(bz_rd_data_0);
-    assign engine_ey_old   = ey_rd_data_0;
-    assign engine_ey_right = ey_rd_data_1;
-    assign engine_bz_old   = bz_rd_data_0;
-    assign engine_bz_left  = bz_rd_data_0;
-    assign engine_bz_right = bz_rd_data_1;
+    assign state_debug = {2'b0, top_state};
+    assign cell_debug  = '0;
+    assign ey_probe    = $signed(ey_rd_data_1);
+    assign bz_probe    = $signed(bz_rd_data_1);
+
+    always_comb begin
+        ey_rd_addr_0 = solver_ey_rd_addr;
+        bz_rd_addr_0 = solver_bz_rd_addr;
+        ey_rd_addr_1 = probe_addr;
+        bz_rd_addr_1 = probe_addr;
+
+        if (top_state == TOP_INIT) begin
+            ey_we      = 1'b1;
+            ey_wr_addr = init_idx;
+            ey_wr_data = {DATA_WIDTH{1'b0}};
+            bz_we      = 1'b1;
+            bz_wr_addr = init_idx;
+            bz_wr_data = {DATA_WIDTH{1'b0}};
+        end else begin
+            ey_we      = solver_ey_we;
+            ey_wr_addr = solver_ey_wr_addr;
+            ey_wr_data = solver_ey_wr_data;
+            bz_we      = solver_bz_we;
+            bz_wr_addr = solver_bz_wr_addr;
+            bz_wr_data = solver_bz_wr_data;
+        end
+    end
 
     fsm_controller u_fsm (
         .clk(clk),
@@ -155,87 +149,46 @@ module top_fdtd_system #(
         .bz_wr_data(bz_wr_data)
     );
 
-    fdtd_engine #(
-        .FP_WIDTH(DATA_WIDTH)
-    ) u_engine (
+    fdtd_solver #(
+        .CELLS(CELLS),
+        .CELL_WIDTH(ADDR_WIDTH),
+        .DATA_WIDTH(DATA_WIDTH)
+    ) u_solver (
         .clk(clk),
+        .rst(rst),
         .C_E(C_E),
         .C_B(C_B),
-        .ey_old(engine_ey_old),
-        .bz_left(engine_bz_left),
-        .bz_right(engine_bz_right),
-        .bz_old(engine_bz_old),
-        .ey_left(engine_ey_old),
-        .ey_right(engine_ey_right),
-        .ey_new(engine_ey_new),
-        .bz_new(engine_bz_new)
+        .source_in(source_sample),
+        .source_valid(source_sample_valid),
+        .source_idx(source_addr),
+        .ey_rd_addr(solver_ey_rd_addr),
+        .ey_rd_dout(ey_rd_data_0),
+        .ey_wr_addr(solver_ey_wr_addr),
+        .ey_wr_data(solver_ey_wr_data),
+        .ey_we(solver_ey_we),
+        .bz_rd_addr(solver_bz_rd_addr),
+        .bz_rd_dout(bz_rd_data_0),
+        .bz_wr_addr(solver_bz_wr_addr),
+        .bz_wr_data(solver_bz_wr_data),
+        .bz_we(solver_bz_we),
+        .solver_enable(solver_enable),
+        .solver_done(solver_done)
     );
-
-    always_comb begin
-        ey_rd_addr_0 = probe_addr;
-        ey_rd_addr_1 = source_addr;
-        bz_rd_addr_0 = probe_addr;
-        bz_rd_addr_1 = source_addr;
-
-        ey_we      = 1'b0;
-        ey_wr_addr = init_idx;
-        ey_wr_data = {DATA_WIDTH{1'b0}};
-        bz_we      = 1'b0;
-        bz_wr_addr = init_idx;
-        bz_wr_data = {DATA_WIDTH{1'b0}};
-
-        if ((solver_state == SOLVER_READ) ||
-            (solver_state == SOLVER_PIPE1) ||
-            (solver_state == SOLVER_PIPE2) ||
-            (solver_state == SOLVER_WRITE)) begin
-            ey_rd_addr_0 = cell_idx;
-            ey_rd_addr_1 = cell_idx + ADDR_ONE;
-            bz_rd_addr_0 = cell_idx;
-            bz_rd_addr_1 = cell_idx + ADDR_ONE;
-        end
-
-        case (top_state)
-            TOP_INIT: begin
-                ey_we      = 1'b1;
-                ey_wr_addr = init_idx;
-                ey_wr_data = {DATA_WIDTH{1'b0}};
-                bz_we      = 1'b1;
-                bz_wr_addr = init_idx;
-                bz_wr_data = {DATA_WIDTH{1'b0}};
-            end
-
-            default: begin
-                if (solver_state == SOLVER_WRITE) begin
-                    if (field_pass == FIELD_EY) begin
-                        ey_we      = 1'b1;
-                        ey_wr_addr = cell_idx;
-                        ey_wr_data = (source_sample_valid && (cell_idx == source_addr))
-                                   ? source_sample
-                                   : engine_ey_new;
-                    end else begin
-                        bz_we      = 1'b1;
-                        bz_wr_addr = cell_idx;
-                        bz_wr_data = engine_bz_new;
-                    end
-                end
-            end
-        endcase
-    end
 
     always_ff @(posedge clk) begin
         if (rst) begin
             top_state       <= TOP_IDLE;
             fsm_start       <= 1'b0;
             init_idx        <= {ADDR_WIDTH{1'b0}};
+            iteration_count <= 16'd0;
         end else begin
             fsm_start <= 1'b0;
+            if (solver_done) iteration_count <= iteration_count + 1'b1;
 
             case (top_state)
                 TOP_IDLE: begin
-                    init_idx        <= {ADDR_WIDTH{1'b0}};
-                    if (start) begin
-                        top_state <= TOP_INIT;
-                    end
+                    iteration_count <= 16'd0;
+                    if (start) top_state <= TOP_INIT;
                 end
 
                 TOP_INIT: begin
@@ -249,14 +202,13 @@ module top_fdtd_system #(
                 end
 
                 TOP_RUN: begin
-                    if (fsm_done) begin
-                        top_state <= TOP_DONE;
-                    end
+                    if (fsm_done) top_state <= TOP_DONE;
                 end
 
                 TOP_DONE: begin
                     if (start) begin
                         init_idx        <= {ADDR_WIDTH{1'b0}};
+                        iteration_count <= 16'd0;
                         top_state       <= TOP_INIT;
                     end
                 end
@@ -291,74 +243,6 @@ module top_fdtd_system #(
                 cordic_done         <= 1'b1;
                 cordic_inflight     <= 1'b0;
             end
-        end
-    end
-
-    always_ff @(posedge clk) begin
-        if (rst) begin
-            solver_state <= SOLVER_IDLE;
-            solver_done  <= 1'b0;
-            cell_idx     <= FIRST_ACTIVE_CELL;
-            field_pass   <= FIELD_EY;
-            iteration_count <= 16'd0;
-        end else if (((top_state == TOP_IDLE) || (top_state == TOP_DONE)) && start) begin
-            solver_state <= SOLVER_IDLE;
-            solver_done  <= 1'b0;
-            cell_idx     <= FIRST_ACTIVE_CELL;
-            field_pass   <= FIELD_EY;
-            iteration_count <= 16'd0;
-        end else if (!solver_enable) begin
-            solver_state <= SOLVER_IDLE;
-            solver_done  <= 1'b0;
-            cell_idx     <= FIRST_ACTIVE_CELL;
-            field_pass   <= FIELD_EY;
-        end else begin
-            solver_done <= 1'b0;
-
-            case (solver_state)
-                SOLVER_IDLE: begin
-                    cell_idx     <= FIRST_ACTIVE_CELL;
-                    field_pass   <= FIELD_EY;
-                    solver_state <= SOLVER_READ;
-                end
-
-                SOLVER_READ: begin
-                    solver_state <= SOLVER_PIPE1;
-                end
-
-                SOLVER_PIPE1: begin
-                    solver_state <= SOLVER_PIPE2;
-                end
-
-                SOLVER_PIPE2: begin
-                    solver_state <= SOLVER_WRITE;
-                end
-
-                SOLVER_WRITE: begin
-                    if (cell_idx == LAST_ACTIVE_CELL) begin
-                        if (field_pass == FIELD_EY) begin
-                            field_pass   <= FIELD_BZ;
-                            cell_idx     <= FIRST_ACTIVE_CELL;
-                            solver_state <= SOLVER_READ;
-                        end else begin
-                            iteration_count <= iteration_count + 16'd1;
-                            solver_done     <= 1'b1;
-                            solver_state    <= SOLVER_DONE_WAIT;
-                        end
-                    end else begin
-                        cell_idx     <= cell_idx + ADDR_ONE;
-                        solver_state <= SOLVER_READ;
-                    end
-                end
-
-                SOLVER_DONE_WAIT: begin
-                    solver_state <= SOLVER_DONE_WAIT;
-                end
-
-                default: begin
-                    solver_state <= SOLVER_IDLE;
-                end
-            endcase
         end
     end
 
