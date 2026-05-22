@@ -11,11 +11,15 @@ Compare with the quasi-static version:
   This file:    Ex, Ey, Bz updated every step via Maxwell's curls.
                 Waves travel, reflect, interfere, and get absorbed by PML.
 
+Numerical constants match the FPGA implementation (Section 9 of the guide):
+  c_eff=0.5, Δt=0.35, CB=0.35 (Q3.13: 2867), CE=0.0875 (Q3.13: 717).
+Sources use soft injection (+=) as in fdtd_engine.v, so reflected waves
+pass back through source cells without artificial re-reflection.
+
 Configure the blocks below — no other changes needed:
-  • SOURCE_*    — driven conductor geometry (point / line / area)
+  • SOURCES     — list of up to ~15 source dicts (type/position/phase/enable)
   • GROUND_*    — optional grounded conductor
   • BOUNDARY_*  — outer absorbing PML or grounded enclosure
-  • V_func      — source waveform (sine, Gaussian pulse, ramp-sine, …)
   • DISPLAY_*   — which field panels to show
 """
 
@@ -35,13 +39,13 @@ DELTA    = 1.0        # Spatial cell size (normalised units, 1 unit = one cell)
 # ── Time stepping ─────────────────────────────────────────────────────────────
 # Courant number S = c*dt/dx.  Must be < 1/sqrt(2) ≈ 0.707 for 2-D stability.
 # S = 0.5 is a safe, standard choice.
-C_SPEED  = 1.0        # Effective wave speed (normalised)
-COURANT  = 0.5        # S = c*dt/dx  (CFL safety factor, < 1/sqrt(2))
-DT       = COURANT * DELTA / C_SPEED   # Time step (derived, do not edit)
+C_SPEED  = 0.5        # FPGA c_eff (guide Section 9)
+DT       = 0.35       # FPGA Δt   (guide Section 9); gives CB=0.35, CE=0.0875
+COURANT  = C_SPEED * DT / DELTA       # ≈0.175, well below 1/√2 stability limit
 
-# Coefficients for the Yee update equations (derived, do not edit):
-#   CB = dt/dx   — how much curl-E drives dBz/dt
-#   CE = c^2 * dt/dx — how much curl-Bz drives dE/dt
+# Coefficients for the Yee update equations — match FPGA Q3.13 constants:
+#   CB = Δt/Δx       = 0.35    (Q3.13: 2867)
+#   CE = c²×Δt/Δx   = 0.0875  (Q3.13:  717)
 CB = DT / DELTA                        # Bz update coefficient
 CE = C_SPEED**2 * DT / DELTA          # Ex, Ey update coefficient
 
@@ -53,48 +57,38 @@ INTERVAL          = 40     # ms between frames (~25 fps)
 
 # ── Source waveform ────────────────────────────────────────────────────────────
 VF_AMP   = 1.0        # Peak source amplitude
-FREQ     = 0.05       # Normalised frequency  (wavelength = C_SPEED/FREQ = 20 cells)
+FREQ     = 0.05       # Normalised frequency  (wavelength = C_SPEED/FREQ = 10 cells)
+                       # Matches FPGA f₀=0.05; phase increment = f₀×2π×DT ≈ 0.10996 rad/step
                        # Keep FREQ < 0.1 to avoid grid dispersion
 
-def V_func(t: float) -> float:
-    """Source waveform as a function of time step t (in dt units)."""
-    # Ramp-up sine — avoids startup transient artefacts
-    tau = 1.0 / FREQ          # one period
-    ramp = 1.0 - np.exp(-t / tau)
-    return VF_AMP * ramp * np.sin(2 * np.pi * FREQ * t * DT)
+# Waveform: ramp-up sine, computed inline per source in fdtd_step.
+# Phase increment per step = 0.10996 rad ≡ Q3.13 value 901 used in FPGA CORDIC.
 
-# Alternatives (uncomment one):
-# def V_func(t): return VF_AMP * np.sin(2*np.pi*FREQ*t*DT)        # pure sine
-# def V_func(t):                                                    # Gaussian pulse
-#     t0, sigma = 30, 10
-#     return VF_AMP * np.exp(-0.5*((t-t0)/sigma)**2) * np.sin(2*np.pi*FREQ*t*DT)
+# ── Source conductors ─────────────────────────────────────────────────────────
+#  List of up to ~15 sources.  Each entry is a dict with keys:
+#    type   : "point" | "line" | "area"
+#    x, y   : centre position in grid units (0 = domain centre, range -SPAN..SPAN)
+#    len    : length along primary axis [grid units]  (line / area)
+#    wid    : width along secondary axis [grid units] (area only)
+#    orient : "h" (horizontal) | "v" (vertical)       (line only)
+#    field  : "Ex" | "Ey"  — which E component is soft-injected
+#    phase  : phase offset in radians relative to source 0
+#    enable : True | False
 
-# ── Source conductor ──────────────────────────────────────────────────────────
-#  SOURCE_TYPE   "point" | "line" | "area"
-#  SOURCE_X/Y    Centre position in grid units (0 = domain centre, range -SPAN..SPAN)
-#  SOURCE_LEN    Length along primary axis [grid units]  (line / area)
-#  SOURCE_WID    Width along secondary axis [grid units] (area only)
-#  SOURCE_ORIENT "h" (horizontal) | "v" (vertical)       (line only)
-#  SOURCE_FIELD  "Ex" | "Ey"  — which E component is driven (hard source)
-
-SOURCE_TYPE   = "line"
-SOURCE_X      = -15
-SOURCE_Y      = 0
-SOURCE_LEN    = 20
-SOURCE_WID    = 4
-SOURCE_ORIENT = "v"
-SOURCE_FIELD  = "Ex"       # drive Ex component (or "Ey")
-
-# ── Optional second source (set SOURCE2_ENABLE = True for interference) ────────
-SOURCE2_ENABLE = False
-SOURCE2_TYPE   = "point"
-SOURCE2_X      = +15
-SOURCE2_Y      = 0
-SOURCE2_LEN    = 20
-SOURCE2_WID    = 4
-SOURCE2_ORIENT = "v"
-SOURCE2_FIELD  = "Ex"
-SOURCE2_PHASE  = np.pi     # phase offset relative to source 1 (radians)
+SOURCES = [
+    # Source 0 — vertical line, left of centre, drives Ex
+    {
+        "type": "line", "x": -15, "y": 0, "len": 20, "wid": 4,
+        "orient": "v", "field": "Ex", "phase": 0.0, "enable": True,
+    },
+    # Source 1 — example second source (antiphase, right of centre)
+    {
+        "type": "point", "x": +15, "y": 0, "len": 1, "wid": 1,
+        "orient": "v",  "field": "Ex", "phase": np.pi, "enable": False,
+    },
+    # Add further sources below — copy a block and set enable: True.
+    # Up to ~15 sources are supported with no code changes.
+]
 
 # ── Ground conductor ──────────────────────────────────────────────────────────
 GROUND_EXIST  = False
@@ -162,22 +156,6 @@ def _make_pml_profile():
     but it works well enough for visualisation — reflections < 1%.
     """
     w = PML_WIDTH
-    sigma = np.zeros((IMAX, IMAX), dtype=float)
-
-    for i in range(IMAX):
-        for edge_dist_fn, indices in [
-            (lambda i: w - i,          range(w)),           # left
-            (lambda i: i - (IMAX-1-w), range(IMAX-w, IMAX)), # right
-        ]:
-            if i in indices:
-                d = max(0, w - i) if i < w else i - (IMAX - 1 - w)
-                s = PML_SIGMA_MAX * (d / w) ** 3
-                sigma[i, :] = np.maximum(sigma[i, :], s)
-                sigma[:, i] = np.maximum(sigma[:, i], s)
-
-    # Vectorised version (faster):
-    sigma = np.zeros((IMAX, IMAX), dtype=float)
-    w = PML_WIDTH
     ramp = np.zeros(IMAX)
     for k in range(w):
         ramp[k]          = PML_SIGMA_MAX * ((w - k) / w) ** 3   # left/top
@@ -229,19 +207,15 @@ def _source_mask(stype, sx, sy, slen, swid, sorient):
     return mask
 
 
-# Build masks
-src1_mask  = _source_mask(SOURCE_TYPE,   SOURCE_X,  SOURCE_Y,
-                           SOURCE_LEN,  SOURCE_WID, SOURCE_ORIENT)
-src2_mask  = (_source_mask(SOURCE2_TYPE, SOURCE2_X, SOURCE2_Y,
-                            SOURCE2_LEN, SOURCE2_WID, SOURCE2_ORIENT)
-              if SOURCE2_ENABLE else np.zeros((IMAX, IMAX), dtype=bool))
-gnd_mask   = (_source_mask(GROUND_TYPE,  GROUND_X,  GROUND_Y,
-                            GROUND_LEN,  GROUND_WID, GROUND_ORIENT)
-              if GROUND_EXIST else np.zeros((IMAX, IMAX), dtype=bool))
-
-# Combined fixed-node mask (hard sources + ground)
-# Cells in this mask are overwritten after each FDTD update (hard source).
-all_fixed  = src1_mask | src2_mask | gnd_mask
+# Build source masks — one per entry in SOURCES
+src_masks = [
+    _source_mask(s["type"], s["x"], s["y"], s["len"], s["wid"], s["orient"])
+    if s["enable"] else np.zeros((IMAX, IMAX), dtype=bool)
+    for s in SOURCES
+]
+gnd_mask  = (_source_mask(GROUND_TYPE,  GROUND_X,  GROUND_Y,
+                           GROUND_LEN,  GROUND_WID, GROUND_ORIENT)
+             if GROUND_EXIST else np.zeros((IMAX, IMAX), dtype=bool))
 
 # PEC boundary mask (outer walls if BOUNDARY_TYPE == "pec")
 pec_mask   = np.zeros((IMAX, IMAX), dtype=bool)
@@ -285,8 +259,12 @@ def fdtd_step(n: int):
     # Forward differences:
     #   dEy/dx[i,j] = ( Ey[i, j+1] - Ey[i, j] ) / Delta
     #   dEx/dy[i,j] = ( Ex[i+1, j] - Ex[i, j] ) / Delta
+    # Zero the last row/column of each difference to prevent np.roll wrap-around
+    # from coupling opposite edges through the PML.
     dEy_dx = (np.roll(Ey, -1, axis=1) - Ey) / DELTA
+    dEy_dx[:, -1] = 0.0
     dEx_dy = (np.roll(Ex, -1, axis=0) - Ex) / DELTA
+    dEx_dy[-1, :] = 0.0
     curl_E = dEy_dx - dEx_dy
 
     Bz = decay_Bz * Bz - CB * curl_E
@@ -296,6 +274,7 @@ def fdtd_step(n: int):
     # Backward difference:
     #   dBz/dy[i,j] = ( Bz[i, j] - Bz[i-1, j] ) / Delta
     dBz_dy = (Bz - np.roll(Bz, +1, axis=0)) / DELTA
+    dBz_dy[0, :] = 0.0
     Ex = decay_E * Ex + CE * dBz_dy
 
     # ── 3. Update Ey from curl of Bz (Ampere, x-component) ───────────────────
@@ -303,6 +282,7 @@ def fdtd_step(n: int):
     # Backward difference:
     #   dBz/dx[i,j] = ( Bz[i, j] - Bz[i, j-1] ) / Delta
     dBz_dx = (Bz - np.roll(Bz, +1, axis=1)) / DELTA
+    dBz_dx[:, 0] = 0.0
     Ey = decay_E * Ey - CE * dBz_dx
 
     # ── 4. PEC boundary: force E tangential = 0 on walls ─────────────────────
@@ -311,24 +291,18 @@ def fdtd_step(n: int):
         Ey[pec_mask] = 0.0
         Bz[pec_mask] = 0.0
 
-    # ── 5. Hard-source injection ──────────────────────────────────────────────
-    # Overwrite fixed-node cells with prescribed waveform (hard source).
-    # Phase offset between source 1 and source 2 is applied here.
-    v1 = V_func(n)
-    if SOURCE_FIELD == "Ex":
-        Ex[src1_mask] = v1
-    else:
-        Ey[src1_mask] = v1
-
-    if SOURCE2_ENABLE:
-        # Compute source 2 waveform with its own phase offset
-        tau2  = 1.0 / FREQ
-        ramp2 = 1.0 - np.exp(-n / tau2)
-        v2    = VF_AMP * ramp2 * np.sin(2 * np.pi * FREQ * n * DT + SOURCE2_PHASE)
-        if SOURCE2_FIELD == "Ex":
-            Ex[src2_mask] = v2
+    # ── 5. Soft-source injection — matches FPGA fdtd_engine.v ────────────────
+    # ADD waveform to the FDTD-updated field (soft source) so reflected waves
+    # pass back through source cells without artificial re-reflection.
+    ramp = 1.0 - np.exp(-n / (1.0 / FREQ))
+    for s, mask in zip(SOURCES, src_masks):
+        if not s["enable"] or not np.any(mask):
+            continue
+        v = VF_AMP * ramp * np.sin(2 * np.pi * FREQ * n * DT + s["phase"])
+        if s["field"] == "Ex":
+            Ex[mask] += v
         else:
-            Ey[src2_mask] = v2
+            Ey[mask] += v
 
     if GROUND_EXIST:
         if GROUND_FIELD == "Ex":
@@ -406,19 +380,17 @@ for lbl, orig_idx in active:
                        interpolation='bilinear')
         fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04).ax.yaxis.set_tick_params(color='#8b949e', labelcolor='#8b949e')
     elif orig_idx == 3: # |S|
-        Smag = np.abs(Ex * Bz) + np.abs(Ey * Bz)
+        Smag = np.sqrt((Ey * Bz)**2 + (Ex * Bz)**2)
         im = ax.imshow(Smag, origin='lower', extent=[-SPAN,SPAN,-SPAN,SPAN],
                        vmin=0, vmax=clim_e*clim_b, cmap='viridis', aspect='equal',
                        interpolation='bilinear')
         fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04).ax.yaxis.set_tick_params(color='#8b949e', labelcolor='#8b949e')
 
     # Mark source positions on every panel
-    if np.any(src1_mask):
-        ys, xs = np.where(src1_mask)
-        ax.plot(xs - SPAN, ys - SPAN, 'w+', ms=8, mew=1.5, alpha=0.8)
-    if SOURCE2_ENABLE and np.any(src2_mask):
-        ys, xs = np.where(src2_mask)
-        ax.plot(xs - SPAN, ys - SPAN, 'w+', ms=8, mew=1.5, alpha=0.8, zorder=5)
+    for mask in src_masks:
+        if np.any(mask):
+            ys, xs = np.where(mask)
+            ax.plot(xs - SPAN, ys - SPAN, 'w+', ms=8, mew=1.5, alpha=0.8, zorder=5)
     if GROUND_EXIST and np.any(gnd_mask):
         ys, xs = np.where(gnd_mask)
         ax.plot(xs - SPAN, ys - SPAN, 'wx', ms=8, mew=1.5, alpha=0.8)
