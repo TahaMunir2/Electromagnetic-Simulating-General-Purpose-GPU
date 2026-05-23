@@ -43,6 +43,7 @@ module fsm_controller (
                 cordic_enable = 0;
                 if(solver_done) next_state = DONE;
             end
+            // need to add state called Poynting
             DONE: begin
                 solver_enable = 0;
                 if(iteration_count < num_iterations) next_state = SOURCE_GEN;

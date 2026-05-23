@@ -9,6 +9,8 @@ module bz #(
     input  logic signed [FP_WIDTH-1:0] bz_old,
     input  logic signed [FP_WIDTH-1:0] ey_left,
     input  logic signed [FP_WIDTH-1:0] ey_right,
+    input  logic signed [FP_WIDTH-1:0] ex_left,
+    input  logic signed [FP_WIDTH-1:0] ex_right,
     output logic signed [FP_WIDTH-1:0] bz_new
 );
 
@@ -18,9 +20,9 @@ module bz #(
     logic signed [FP_WIDTH-1:0] bz_truncated;
 
     always_ff @(posedge clk) begin
-        difference_reg <= ey_left - ey_right;
+        difference_reg <= (ey_right -ey_left) - (ex_right - ex_left);
         bz_1_reg       <= bz_old;
-        bz_new         <= bz_1_reg + bz_truncated;
+        bz_new         <= bz_1_reg - bz_truncated;
     end
 
     assign bz_untruncated = C_B * difference_reg;

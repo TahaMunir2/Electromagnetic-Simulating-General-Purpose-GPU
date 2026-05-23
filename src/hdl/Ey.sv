@@ -20,7 +20,7 @@ module ey #(
     always_ff @(posedge clk) begin
         difference_reg <= bz_right - bz_left;
         ey_1_reg       <= ey_old;
-        ey_new         <= ey_1_reg + ey_truncated;
+        ey_new         <= ey_1_reg - ey_truncated;
     end
 
     assign ey_untruncated = C_E * difference_reg;

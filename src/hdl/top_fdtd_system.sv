@@ -10,23 +10,24 @@ module top_fdtd_system #(
     input  logic                         start,
     input  logic [15:0]                  num_iterations,
     input  logic [15:0]                  phase_step,
-    input  logic [ADDR_WIDTH-1:0]        source_addr,
-    input  logic [ADDR_WIDTH-1:0]        probe_addr,
+    input  logic [2*ADDR_WIDTH-1:0]      source_addr,
+    input  logic [2*ADDR_WIDTH-1:0]      probe_addr,
     input  logic signed [DATA_WIDTH-1:0] C_E,
     input  logic signed [DATA_WIDTH-1:0] C_B,
     output logic                         busy,
     output logic                         done,
     output logic [3:0]                   state_debug,
     output logic [15:0]                  iteration_count,
-    output logic [ADDR_WIDTH-1:0]        cell_debug,
+    output logic [2*ADDR_WIDTH-1:0]      cell_debug,
     output logic signed [DATA_WIDTH-1:0] source_sample,
     output logic                         source_sample_valid,
     output logic signed [DATA_WIDTH-1:0] ey_probe,
+    output logic signed [DATA_WIDTH-1:0] ex_probe,
     output logic signed [DATA_WIDTH-1:0] bz_probe
 );
 
-    localparam logic [ADDR_WIDTH-1:0] ADDR_ONE       = {{(ADDR_WIDTH-1){1'b0}}, 1'b1};
-    localparam logic [ADDR_WIDTH-1:0] LAST_INIT_ADDR = {ADDR_WIDTH{1'b1}};
+    localparam logic [2*ADDR_WIDTH-1:0] ADDR_ONE       = {{(2*ADDR_WIDTH-1){1'b0}}, 1'b1};
+    localparam logic [2*ADDR_WIDTH-1:0] LAST_INIT_ADDR = {(2*ADDR_WIDTH){1'b1}};
 
     typedef enum logic [1:0] {
         TOP_IDLE,
@@ -53,25 +54,35 @@ module top_fdtd_system #(
     logic        cordic_out_valid;
     logic        cordic_inflight;
 
-    logic [ADDR_WIDTH-1:0] init_idx;
+    logic [2*ADDR_WIDTH-1:0] init_idx;
 
-    logic [ADDR_WIDTH-1:0] ey_rd_addr_0, ey_rd_addr_1;
-    logic [DATA_WIDTH-1:0] ey_rd_data_0, ey_rd_data_1;
-    logic [ADDR_WIDTH-1:0] bz_rd_addr_0, bz_rd_addr_1;
-    logic [DATA_WIDTH-1:0] bz_rd_data_0, bz_rd_data_1;
-    logic                  ey_we;
-    logic [ADDR_WIDTH-1:0] ey_wr_addr;
-    logic [DATA_WIDTH-1:0] ey_wr_data;
-    logic                  bz_we;
-    logic [ADDR_WIDTH-1:0] bz_wr_addr;
-    logic [DATA_WIDTH-1:0] bz_wr_data;
+    logic [2*ADDR_WIDTH-1:0] ey_rd_addr_0, ey_rd_addr_1;
+    logic [DATA_WIDTH-1:0]   ey_rd_data_0, ey_rd_data_1;
+    logic [2*ADDR_WIDTH-1:0] ex_rd_addr_0, ex_rd_addr_1;
+    logic [DATA_WIDTH-1:0]   ex_rd_data_0, ex_rd_data_1;
+    logic [2*ADDR_WIDTH-1:0] bz_rd_addr_0, bz_rd_addr_1;
+    logic [DATA_WIDTH-1:0]   bz_rd_data_0, bz_rd_data_1;
+    logic                    ey_we;
+    logic [2*ADDR_WIDTH-1:0] ey_wr_addr;
+    logic [DATA_WIDTH-1:0]   ey_wr_data;
+    logic                    ex_we;
+    logic [2*ADDR_WIDTH-1:0] ex_wr_addr;
+    logic [DATA_WIDTH-1:0]   ex_wr_data;
+    logic                    bz_we;
+    logic [2*ADDR_WIDTH-1:0] bz_wr_addr;
+    logic [DATA_WIDTH-1:0]   bz_wr_data;
 
-    logic [ADDR_WIDTH-1:0] solver_ey_rd_addr, solver_ey_wr_addr;
-    logic [DATA_WIDTH-1:0] solver_ey_wr_data;
-    logic                  solver_ey_we;
-    logic [ADDR_WIDTH-1:0] solver_bz_rd_addr, solver_bz_wr_addr;
-    logic [DATA_WIDTH-1:0] solver_bz_wr_data;
-    logic                  solver_bz_we;
+    logic [2*ADDR_WIDTH-1:0] solver_ey_rd_addr, solver_ey_wr_addr;
+    logic [DATA_WIDTH-1:0]   solver_ey_wr_data;
+    logic                    solver_ey_we;
+    logic [2*ADDR_WIDTH-1:0] solver_ex_rd_addr, solver_ex_wr_addr;
+    logic [DATA_WIDTH-1:0]   solver_ex_wr_data;
+    logic                    solver_ex_we;
+    logic [2*ADDR_WIDTH-1:0] solver_bz_rd_addr, solver_bz_wr_addr;
+    logic [DATA_WIDTH-1:0]   solver_bz_wr_data;
+    logic                    solver_bz_we;
+    logic [2*ADDR_WIDTH-1:0] solver_ey_adj_rd_addr;
+    logic [2*ADDR_WIDTH-1:0] solver_bz_adj_rd_addr;
 
     assign fsm_rst     = rst || (top_state != TOP_RUN);
     assign busy        = (top_state == TOP_INIT) || (top_state == TOP_RUN);
@@ -79,18 +90,31 @@ module top_fdtd_system #(
     assign state_debug = {2'b0, top_state};
     assign cell_debug  = '0;
     assign ey_probe    = $signed(ey_rd_data_1);
+    assign ex_probe    = $signed(ex_rd_data_1);
     assign bz_probe    = $signed(bz_rd_data_1);
 
     always_comb begin
         ey_rd_addr_0 = solver_ey_rd_addr;
+        ex_rd_addr_0 = solver_ex_rd_addr;
         bz_rd_addr_0 = solver_bz_rd_addr;
-        ey_rd_addr_1 = probe_addr;
-        bz_rd_addr_1 = probe_addr;
+
+        if (top_state == TOP_RUN) begin
+            ey_rd_addr_1 = solver_ey_adj_rd_addr;
+            bz_rd_addr_1 = solver_bz_adj_rd_addr;
+            ex_rd_addr_1 = '0;
+        end else begin
+            ey_rd_addr_1 = probe_addr;
+            ex_rd_addr_1 = probe_addr;
+            bz_rd_addr_1 = probe_addr;
+        end
 
         if (top_state == TOP_INIT) begin
             ey_we      = 1'b1;
             ey_wr_addr = init_idx;
             ey_wr_data = {DATA_WIDTH{1'b0}};
+            ex_we      = 1'b1;
+            ex_wr_addr = init_idx;
+            ex_wr_data = {DATA_WIDTH{1'b0}};
             bz_we      = 1'b1;
             bz_wr_addr = init_idx;
             bz_wr_data = {DATA_WIDTH{1'b0}};
@@ -98,6 +122,9 @@ module top_fdtd_system #(
             ey_we      = solver_ey_we;
             ey_wr_addr = solver_ey_wr_addr;
             ey_wr_data = solver_ey_wr_data;
+            ex_we      = solver_ex_we;
+            ex_wr_addr = solver_ex_wr_addr;
+            ex_wr_data = solver_ex_wr_data;
             bz_we      = solver_bz_we;
             bz_wr_addr = solver_bz_wr_addr;
             bz_wr_data = solver_bz_wr_data;
@@ -127,9 +154,9 @@ module top_fdtd_system #(
     );
 
     bram_module #(
-        .DEPTH(CELLS),
+        .DEPTH(CELLS*CELLS),
         .WIDTH(DATA_WIDTH),
-        .ADDR_WIDTH(ADDR_WIDTH)
+        .ADDR_WIDTH(2*ADDR_WIDTH)
     ) u_bram (
         .clk(clk),
         .rst(rst),
@@ -137,6 +164,10 @@ module top_fdtd_system #(
         .ey_rd_data_0(ey_rd_data_0),
         .ey_rd_addr_1(ey_rd_addr_1),
         .ey_rd_data_1(ey_rd_data_1),
+        .ex_rd_addr_0(ex_rd_addr_0),
+        .ex_rd_data_0(ex_rd_data_0),
+        .ex_rd_addr_1(ex_rd_addr_1),
+        .ex_rd_data_1(ex_rd_data_1),
         .bz_rd_addr_0(bz_rd_addr_0),
         .bz_rd_data_0(bz_rd_data_0),
         .bz_rd_addr_1(bz_rd_addr_1),
@@ -144,6 +175,9 @@ module top_fdtd_system #(
         .ey_we(ey_we),
         .ey_wr_addr(ey_wr_addr),
         .ey_wr_data(ey_wr_data),
+        .ex_we(ex_we),
+        .ex_wr_addr(ex_wr_addr),
+        .ex_wr_data(ex_wr_data),
         .bz_we(bz_we),
         .bz_wr_addr(bz_wr_addr),
         .bz_wr_data(bz_wr_data)
@@ -160,17 +194,26 @@ module top_fdtd_system #(
         .C_B(C_B),
         .source_in(source_sample),
         .source_valid(source_sample_valid),
-        .source_idx(source_addr),
+        .source_addr(source_addr),
         .ey_rd_addr(solver_ey_rd_addr),
         .ey_rd_dout(ey_rd_data_0),
         .ey_wr_addr(solver_ey_wr_addr),
         .ey_wr_data(solver_ey_wr_data),
         .ey_we(solver_ey_we),
+        .ex_rd_addr(solver_ex_rd_addr),
+        .ex_rd_dout(ex_rd_data_0),
+        .ex_wr_addr(solver_ex_wr_addr),
+        .ex_wr_data(solver_ex_wr_data),
+        .ex_we(solver_ex_we),
         .bz_rd_addr(solver_bz_rd_addr),
         .bz_rd_dout(bz_rd_data_0),
         .bz_wr_addr(solver_bz_wr_addr),
         .bz_wr_data(solver_bz_wr_data),
         .bz_we(solver_bz_we),
+        .bz_adj_rd_addr(solver_bz_adj_rd_addr),
+        .bz_adj_dout(bz_rd_data_1),
+        .ey_adj_rd_addr(solver_ey_adj_rd_addr),
+        .ey_adj_dout(ey_rd_data_1),
         .solver_enable(solver_enable),
         .solver_done(solver_done)
     );
@@ -179,7 +222,7 @@ module top_fdtd_system #(
         if (rst) begin
             top_state       <= TOP_IDLE;
             fsm_start       <= 1'b0;
-            init_idx        <= {ADDR_WIDTH{1'b0}};
+            init_idx        <= {(2*ADDR_WIDTH){1'b0}};
             iteration_count <= 16'd0;
         end else begin
             fsm_start <= 1'b0;
@@ -207,7 +250,7 @@ module top_fdtd_system #(
 
                 TOP_DONE: begin
                     if (start) begin
-                        init_idx        <= {ADDR_WIDTH{1'b0}};
+                        init_idx        <= {(2*ADDR_WIDTH){1'b0}};
                         iteration_count <= 16'd0;
                         top_state       <= TOP_INIT;
                     end
