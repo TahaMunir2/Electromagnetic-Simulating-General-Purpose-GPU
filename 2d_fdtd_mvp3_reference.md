@@ -1,5 +1,4 @@
 Constraints: 
-- UMPL (add CPML later maybe)
 - Back to 64x64 grid for now
 - Paralellise Ex and Ey solvers since no data dependancies
 - Dual Lane architecture (perhaps 4 if simple)

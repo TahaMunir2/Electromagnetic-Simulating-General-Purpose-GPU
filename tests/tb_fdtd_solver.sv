@@ -132,8 +132,8 @@ module tb_fdtd_solver;
         end
         cycles_taken = cycles_taken + 1;
 
-        $display("  solver_done after %0d cycles (expected %0d)", cycles_taken, 3*GRID);
-        if (cycles_taken !== 3*GRID) begin
+        $display("  solver_done after %0d cycles (expected %0d)", cycles_taken, 2*GRID);
+        if (cycles_taken !== 2*GRID) begin
             $display("  FAIL");
             $finish;
         end

@@ -52,14 +52,14 @@ module fdtd_solver #(
     logic        [2*CELL_WIDTH-1:0] cell_addr;
     logic        [2*CELL_WIDTH-1:0] wr_cell;
     logic                           write_valid;
-    localparam logic [2*CELL_WIDTH+1:0] GRID_SIZE       = CELLS*CELLS;
-    localparam logic [2*CELL_WIDTH+1:0] TWO_GRID_SIZE   = 2*GRID_SIZE;
-    localparam logic [2*CELL_WIDTH+1:0] THREE_GRID_SIZE = 3*GRID_SIZE;
+    localparam logic [2*CELL_WIDTH+1:0] GRID_SIZE     = CELLS*CELLS;
+    localparam logic [2*CELL_WIDTH+1:0] TWO_GRID_SIZE = 2*GRID_SIZE;
     logic        [CELL_WIDTH-1:0] row;
     logic        [CELL_WIDTH-1:0] column;
     logic        [CELL_WIDTH-1:0] wr_row;
     logic        [CELL_WIDTH-1:0] wr_column;
-    logic signed [DATA_WIDTH-1:0] engine_bz_left;
+    logic signed [DATA_WIDTH-1:0] engine_bz_left_ey;
+    logic signed [DATA_WIDTH-1:0] engine_bz_left_ex;
     logic signed [DATA_WIDTH-1:0] ca_ey;
     logic signed [DATA_WIDTH-1:0] ca_ex;
     logic signed [DATA_WIDTH-1:0] ca_bz;
@@ -110,7 +110,8 @@ module fdtd_solver #(
         .cb_bz(cb_bz),
         .ey_old(engine_ey_old),
         .ex_old(engine_ex_old),
-        .bz_left(engine_bz_left),
+        .bz_left_ey(engine_bz_left_ey),
+        .bz_left_ex(engine_bz_left_ex),
         .bz_right(engine_bz_right),
         .bz_old(engine_bz_old),
         .ey_left(engine_ey_left),
@@ -125,10 +126,8 @@ module fdtd_solver #(
 always_comb begin
     if (counter < GRID_SIZE) begin
         phase_addr = counter;
-    end else if (counter < TWO_GRID_SIZE) begin
-        phase_addr = counter - GRID_SIZE;
     end else begin
-        phase_addr = counter - TWO_GRID_SIZE;
+        phase_addr = counter - GRID_SIZE;
     end
 
     cell_addr   = phase_addr;
@@ -139,14 +138,15 @@ always_comb begin
     wr_row      = wr_cell / CELLS;
     wr_column   = wr_cell - (wr_row * CELLS);
 
-    bz_adj_rd_addr  = '0;
-    ey_adj_rd_addr  = '0;
-    ey_rd_addr      = '0;
-    ex_rd_addr      = '0;
-    bz_rd_addr      = '0;
-    engine_ey_left  = prev_ey;
-    engine_ey_right = ey_rd_dout;
-    engine_bz_left  = prev_bz;
+    bz_adj_rd_addr    = '0;
+    ey_adj_rd_addr    = '0;
+    ey_rd_addr        = '0;
+    ex_rd_addr        = '0;
+    bz_rd_addr        = '0;
+    engine_ey_left    = prev_ey;
+    engine_ey_right   = ey_rd_dout;
+    engine_bz_left_ey = prev_bz;
+    engine_bz_left_ex = prev_bz;
 
     if (wr_row < PML_SIZE) d_ey = PML_SIZE - 1 - wr_row;
     else if (wr_row >= CELLS - PML_SIZE) d_ey = wr_row - (CELLS - PML_SIZE);
@@ -156,29 +156,27 @@ always_comb begin
     else if (wr_column >= CELLS - PML_SIZE) d_ex = wr_column - (CELLS - PML_SIZE);
     else d_ex = 0;
 
-    d_bz = (d_ey > d_ex) ? d_ey : d_ex; // the wall closest determines damping factor
+    d_bz = (d_ey > d_ex) ? d_ey : d_ex;
 
-    if(counter < GRID_SIZE) begin
+    if (counter < GRID_SIZE) begin
         ey_rd_addr = cell_addr;
-        bz_rd_addr = cell_addr;
-        if (row != 0) begin
-            bz_adj_rd_addr = cell_addr - CELLS;
-            engine_bz_left = bz_adj_dout;
-        end
-    end else if (counter < TWO_GRID_SIZE) begin
         ex_rd_addr = cell_addr;
         bz_rd_addr = cell_addr;
-    end else if (counter < THREE_GRID_SIZE) begin
+        if (row != 0) begin
+            bz_adj_rd_addr    = cell_addr - CELLS;
+            engine_bz_left_ey = bz_adj_dout;
+        end
+    end else begin
         bz_rd_addr = cell_addr;
         ey_rd_addr = cell_addr;
         if (column != CELLS-1) begin
             ex_rd_addr = cell_addr + 1'b1;
         end
         if (row != CELLS-1) begin
-            ey_adj_rd_addr = cell_addr + CELLS;
+            ey_adj_rd_addr  = cell_addr + CELLS;
             engine_ey_right = ey_adj_dout;
         end
-        engine_ey_left  = ey_rd_dout;
+        engine_ey_left = ey_rd_dout;
     end
 
     engine_ey_old   = ey_rd_dout;
@@ -204,26 +202,22 @@ always_ff @(posedge clk) begin
     if (rst || !solver_enable) begin
         counter <= '0;
     end else begin
-        if (counter == THREE_GRID_SIZE - 1) solver_done <= 1'b1;
+        if (counter == TWO_GRID_SIZE - 1) solver_done <= 1'b1;
 
         if (counter < GRID_SIZE) begin
             ey_we <= write_valid;
+            ex_we <= write_valid;
             if (wr_row == 0 || wr_row == CELLS-1) ey_wr_data <= '0;
             else if (source_valid && wr_cell == source_addr) ey_wr_data <= source_in;
             else ey_wr_data <= engine_ey_new;
-        end
-        
-        else if (counter < TWO_GRID_SIZE) begin
-            ex_we <= write_valid;
             if (wr_column == 0 || wr_column == CELLS-1) ex_wr_data <= '0;
-            else ex_wr_data <= engine_ex_new;          
-
-        end else if (counter < THREE_GRID_SIZE) begin
+            else ex_wr_data <= engine_ex_new;
+        end else begin
             bz_we      <= write_valid;
             bz_wr_data <= engine_bz_new;
         end
 
-        if (counter < THREE_GRID_SIZE) counter <= counter + 1'b1;
+        if (counter < TWO_GRID_SIZE) counter <= counter + 1'b1;
 
     end
 end
