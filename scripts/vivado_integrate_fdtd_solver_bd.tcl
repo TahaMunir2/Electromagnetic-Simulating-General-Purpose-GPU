@@ -17,6 +17,11 @@
 # dual-port BRAM:
 #   - port A: main read
 #   - port B: write during that field's update phase, otherwise adjacent read
+#
+# After solver_done, the adapter scans Ex/Ey/Bz and writes a render magnitude
+# into s_mag_bram:
+#   mag_mode=0: |E| ~= max(abs(Ex), abs(Ey)) + min(abs(Ex), abs(Ey))/2
+#   mag_mode=1: |S| ~= (abs(Bz) * |E|) >> 13
 
 proc getenv_or_default {name default_value} {
     if {[info exists ::env($name)] && $::env($name) ne ""} {
@@ -179,6 +184,13 @@ set repo_root [getenv_or_default REPO_ROOT ""]
 
 if {$repo_root ne ""} {
     set repo_root [file normalize $repo_root]
+    set repo_adapter [file join $repo_root vivado fdtd_solver_bd_adapter.v]
+    if {![file exists $repo_adapter]} {
+        error "REPO_ROOT was set, but adapter file is missing: $repo_adapter"
+    }
+    file mkdir [file dirname $adapter_file]
+    file copy -force $repo_adapter $adapter_file
+
     foreach src_name {fdtd_solver.sv fdtd_engine.sv Ey.sv Ex.sv Bz.sv} {
         set src_file [file join $repo_root src hdl $src_name]
         if {![file exists $src_file]} {
@@ -217,6 +229,7 @@ open_bd_design $bd_file
 foreach obj_name {
     bram_test_start bram_busy bram_done bram_pass
     solver_enable solver_done source_latched solver_checksum
+    e_mag_busy e_mag_done mag_mode mag_busy mag_done
 } {
     catch {delete_bd_objs [get_bd_ports -quiet $obj_name]}
 }
@@ -231,7 +244,7 @@ ensure_const const_0_1 1 0
 ensure_const const_0_16 16 0
 
 set adapter_cell [create_bd_cell -type module -reference fdtd_solver_bd_adapter fdtd_solver_bd_adapter_0]
-refresh_module_reference_for_pin fdtd_solver_bd_adapter_0 fdtd_solver_bd_adapter solver_checksum
+refresh_module_reference_for_pin fdtd_solver_bd_adapter_0 fdtd_solver_bd_adapter mag_done
 
 ensure_port rst I -type rst
 set_property CONFIG.POLARITY ACTIVE_HIGH [get_bd_ports rst]
@@ -239,13 +252,19 @@ connect_bd_net [get_bd_ports clk] [get_bd_pins fdtd_solver_bd_adapter_0/clk]
 connect_bd_net [get_bd_ports rst] [get_bd_pins fdtd_solver_bd_adapter_0/rst]
 
 ensure_port solver_enable I
+ensure_port mag_mode I
 ensure_port solver_done O
 ensure_port source_latched O
 ensure_port solver_checksum O -from 31 -to 0
+ensure_port mag_busy O
+ensure_port mag_done O
 connect_bd_net [get_bd_ports solver_enable] [get_bd_pins fdtd_solver_bd_adapter_0/solver_enable]
+connect_bd_net [get_bd_ports mag_mode] [get_bd_pins fdtd_solver_bd_adapter_0/mag_mode]
 connect_bd_net [get_bd_ports solver_done] [get_bd_pins fdtd_solver_bd_adapter_0/solver_done]
 connect_bd_net [get_bd_ports source_latched] [get_bd_pins fdtd_solver_bd_adapter_0/source_latched]
 connect_bd_net [get_bd_ports solver_checksum] [get_bd_pins fdtd_solver_bd_adapter_0/solver_checksum]
+connect_bd_net [get_bd_ports mag_busy] [get_bd_pins fdtd_solver_bd_adapter_0/mag_busy]
+connect_bd_net [get_bd_ports mag_done] [get_bd_pins fdtd_solver_bd_adapter_0/mag_done]
 
 connect_bd_net [get_bd_pins cordic_source_adapter_0/source_q313] \
                [get_bd_pins fdtd_solver_bd_adapter_0/source_q313]
@@ -255,7 +274,7 @@ connect_bd_net [get_bd_pins cordic_source_adapter_0/source_valid] \
 wire_solver_bram ey_bram ey
 wire_solver_bram ex_bram ex
 wire_solver_bram bz_bram bz
-tie_off_bram s_mag_bram
+wire_solver_bram s_mag_bram s_mag
 
 regenerate_bd_layout -routing
 validate_bd_design
@@ -281,21 +300,13 @@ set preserve_fp [open $preserve_xdc w]
 puts $preserve_fp {
 # Temporary preservation constraints for MVP2 solver bring-up.
 # The checksum output makes solver writes observable; these DONT_TOUCH
-# constraints keep the physical BRAM/IP structure present until the real
-# s_mag/renderer consumer is wired.
-set preserve_cells [list]
-foreach pattern {
-    *mvp2_ftdt_bd_i/ey_bram*
-    *mvp2_ftdt_bd_i/ex_bram*
-    *mvp2_ftdt_bd_i/bz_bram*
-    *mvp2_ftdt_bd_i/s_mag_bram*
-    *mvp2_ftdt_bd_i/fdtd_solver_bd_adapter_0*
-} {
-    set preserve_cells [concat $preserve_cells [get_cells -hier -quiet $pattern]]
-}
-if {[llength $preserve_cells] > 0} {
-    set_property DONT_TOUCH true $preserve_cells
-}
+# constraints keep the physical BRAM/IP structure present until the renderer
+# consumer and final FSM are wired.
+set_property DONT_TOUCH true [get_cells -hier -quiet {*mvp2_ftdt_bd_i/ey_bram*}]
+set_property DONT_TOUCH true [get_cells -hier -quiet {*mvp2_ftdt_bd_i/ex_bram*}]
+set_property DONT_TOUCH true [get_cells -hier -quiet {*mvp2_ftdt_bd_i/bz_bram*}]
+set_property DONT_TOUCH true [get_cells -hier -quiet {*mvp2_ftdt_bd_i/s_mag_bram*}]
+set_property DONT_TOUCH true [get_cells -hier -quiet {*mvp2_ftdt_bd_i/fdtd_solver_bd_adapter_0*}]
 }
 close $preserve_fp
 
@@ -341,6 +352,9 @@ if {$run_impl eq "1"} {
 puts "INFO: FDTD solver integration script completed."
 puts "INFO: BD now uses one physical BRAM per field plus fdtd_solver_bd_adapter_0."
 puts "INFO: Port B is muxed between adjacent read and write where needed."
+puts "INFO: mag_busy/mag_done indicate the post-solver render magnitude pass."
+puts "INFO: mag_mode=0 stores |E| ~= max(abs(Ex),abs(Ey)) + min(abs(Ex),abs(Ey))/2."
+puts "INFO: mag_mode=1 stores |S| ~= (abs(Bz) * |E|) >> 13."
 puts "INFO: solver_checksum[31:0] is exported to preserve/observe solver activity."
 puts "INFO: Temporary preservation constraints written to: $preserve_xdc"
 puts "INFO: Optional reports directory: $report_dir"
