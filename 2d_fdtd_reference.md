@@ -16,3 +16,6 @@ By Sunday:
 - Individual Modules completed
 - Update Top and Integrate
 - Starting working on porting onto FPGA
+
+Conclusion:
+- We ended up achieving everything above + UPML
