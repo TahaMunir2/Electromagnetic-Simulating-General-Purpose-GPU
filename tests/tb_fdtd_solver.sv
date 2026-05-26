@@ -5,11 +5,7 @@ module tb_fdtd_solver;
     localparam CELLS      = 192;
     localparam CELL_WIDTH = 8;
     localparam DATA_WIDTH = 16;
-    localparam FRAC_BITS  = 13;
     localparam GRID       = CELLS * CELLS;
-
-    localparam signed [DATA_WIDTH-1:0] C_E = 16'sd717;
-    localparam signed [DATA_WIDTH-1:0] C_B = 16'sd2867;
 
     logic clk = 1'b0;
     logic rst = 1'b1;
@@ -55,8 +51,6 @@ module tb_fdtd_solver;
     ) dut (
         .clk(clk),
         .rst(rst),
-        .C_E(C_E),
-        .C_B(C_B),
         .source_in(source_in),
         .source_valid(source_valid),
         .source_addr(source_addr),
@@ -103,9 +97,11 @@ module tb_fdtd_solver;
         end
     endtask
 
-    integer row, col, addr;
+    integer row, col;
     integer cycles_taken;
     logic signed [DATA_WIDTH-1:0] ey_val;
+    logic signed [DATA_WIDTH-1:0] pml_val;
+    logic signed [DATA_WIDTH-1:0] int_val;
 
     initial begin
         for (int i = 0; i < GRID; i++) begin
@@ -124,7 +120,6 @@ module tb_fdtd_solver;
         repeat (2) @(posedge clk);
 
         $display("TEST 1: solver_done timing");
-
         source_in     = 16'sd8192;
         source_valid  = 1'b1;
         solver_enable = 1'b1;
@@ -139,41 +134,41 @@ module tb_fdtd_solver;
 
         $display("  solver_done after %0d cycles (expected %0d)", cycles_taken, 3*GRID);
         if (cycles_taken !== 3*GRID) begin
-            $display("  FAIL: wrong cycle count");
+            $display("  FAIL");
             $finish;
         end
         $display("  PASS");
 
         $display("TEST 2: Ey source injection at (8,8)");
         ey_val = ey_mem[flat(8,8)];
-        $display("  Ey[8][8] = %0d (raw), expected ~8192", $signed(ey_val));
+        $display("  Ey[8][8] = %0d", $signed(ey_val));
         if (ey_val == '0) begin
-            $display("  FAIL: Ey[8][8] is still zero after source injection");
+            $display("  FAIL: Ey[8][8] still zero after source injection");
             $finish;
         end
         $display("  PASS");
 
-        $display("TEST 3: Ey boundary (rows 0 and %0d forced zero)", CELLS-1);
+        $display("TEST 3: Ey boundary rows 0 and %0d forced zero", CELLS-1);
         for (col = 0; col < CELLS; col++) begin
             if (ey_mem[flat(0, col)] !== '0) begin
-                $display("  FAIL: Ey[0][%0d] = %0d, expected 0", col, $signed(ey_mem[flat(0,col)]));
+                $display("  FAIL: Ey[0][%0d] = %0d", col, $signed(ey_mem[flat(0,col)]));
                 $finish;
             end
             if (ey_mem[flat(CELLS-1, col)] !== '0) begin
-                $display("  FAIL: Ey[%0d][%0d] = %0d, expected 0", CELLS-1, col, $signed(ey_mem[flat(CELLS-1,col)]));
+                $display("  FAIL: Ey[%0d][%0d] = %0d", CELLS-1, col, $signed(ey_mem[flat(CELLS-1,col)]));
                 $finish;
             end
         end
         $display("  PASS");
 
-        $display("TEST 4: Ex boundary (cols 0 and %0d forced zero)", CELLS-1);
+        $display("TEST 4: Ex boundary cols 0 and %0d forced zero", CELLS-1);
         for (row = 0; row < CELLS; row++) begin
             if (ex_mem[flat(row, 0)] !== '0) begin
-                $display("  FAIL: Ex[%0d][0] = %0d, expected 0", row, $signed(ex_mem[flat(row,0)]));
+                $display("  FAIL: Ex[%0d][0] = %0d", row, $signed(ex_mem[flat(row,0)]));
                 $finish;
             end
             if (ex_mem[flat(row, CELLS-1)] !== '0) begin
-                $display("  FAIL: Ex[%0d][%0d] = %0d, expected 0", row, CELLS-1, $signed(ex_mem[flat(row,CELLS-1)]));
+                $display("  FAIL: Ex[%0d][%0d] = %0d", row, CELLS-1, $signed(ex_mem[flat(row,CELLS-1)]));
                 $finish;
             end
         end
@@ -190,7 +185,6 @@ module tb_fdtd_solver;
             @(posedge clk);
             cycles_taken = cycles_taken + 1;
         end
-
         if (!solver_done) begin
             $display("  FAIL: solver_done did not fire (timeout after %0d cycles)", cycles_taken);
             $finish;
@@ -209,6 +203,41 @@ module tb_fdtd_solver;
         repeat (10) @(posedge clk);
         if (ey_we || ex_we || bz_we) begin
             $display("  FAIL: write enable asserted while solver disabled after rst");
+            $finish;
+        end
+        $display("  PASS");
+
+        $display("TEST 7: PML damping (uniform ey=8192, bz=0)");
+        for (int i = 0; i < GRID; i++) begin
+            ey_mem[i] = 16'sd8192;
+            ex_mem[i] = '0;
+            bz_mem[i] = '0;
+        end
+
+        rst = 1'b1;
+        @(posedge clk);
+        rst           = 1'b0;
+        source_valid  = 1'b0;
+        solver_enable = 1'b1;
+        repeat (2) @(posedge clk);
+
+        wait_done(3*GRID + 10);
+
+        pml_val = ey_mem[flat(2, 96)];
+        int_val = ey_mem[flat(10, 96)];
+        $display("  Ey[2][96]  (PML row, d=3) = %0d", $signed(pml_val));
+        $display("  Ey[10][96] (interior)     = %0d", $signed(int_val));
+
+        if (int_val !== 16'sd8192) begin
+            $display("  FAIL: interior cell modified (expected 8192, got %0d)", $signed(int_val));
+            $finish;
+        end
+        if (int_val <= pml_val) begin
+            $display("  FAIL: PML cell not smaller than interior");
+            $finish;
+        end
+        if (ey_mem[flat(0, 96)] !== '0) begin
+            $display("  FAIL: boundary row 0 not zero after PML run");
             $finish;
         end
         $display("  PASS");
