@@ -1,0 +1,466 @@
+
+*** Running vivado
+    with args -log ray_unit_top.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source ray_unit_top.tcl
+
+
+
+****** Vivado v2020.2 (64-bit)
+  **** SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
+  **** IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
+    ** Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+
+source ray_unit_top.tcl -notrace
+Command: synth_design -top ray_unit_top -part xc7a100tcsg324-1
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a100t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a100t'
+INFO: [Device 21-403] Loading part xc7a100tcsg324-1
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 1964
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 1117.461 ; gain = 8.523
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'ray_unit_top' [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/wrapper/ray_unit_top.sv:18]
+	Parameter W bound to: 32'sb00000000000000000000001010000000 
+	Parameter H bound to: 32'sb00000000000000000000000111100000 
+	Parameter PX_W bound to: 32'sb00000000000000000000000000001010 
+	Parameter PY_W bound to: 32'sb00000000000000000000000000001001 
+	Parameter GRID_N bound to: 32'sb00000000000000000000000001000000 
+	Parameter IDX_W bound to: 32'sb00000000000000000000000000000110 
+	Parameter ADDR_W bound to: 32'sb00000000000000000000000000001100 
+	Parameter N_STEPS bound to: 32'sb00000000000000000000000000010000 
+	Parameter H_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter DIR_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter POS_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter ONE bound to: 16'sb0010000000000000 
+	Parameter ZERO bound to: 16'sb0000000000000000 
+	Parameter OX bound to: 16'sb0000000000000000 
+	Parameter OY bound to: 16'sb1110000000000000 
+	Parameter OZ bound to: 16'sb0001000000000000 
+	Parameter SUN_D bound to: 16'sb0001011010100001 
+INFO: [Synth 8-6157] synthesizing module 'heightmap_bram' [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/wrapper/heightmap_bram.sv:5]
+	Parameter ADDR_W bound to: 32'sb00000000000000000000000000001100 
+	Parameter DATA_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter DEPTH bound to: 32'sb00000000000000000001000000000000 
+
+Warning: Trying to implement RAM in registers. Block RAM or DRAM implementation is not possible for one or more of the following reasons :
+	1: Unable to determine number of words or word size in RAM. 
+	2: No valid read/write found for RAM. 
+RAM dissolved into registers
+INFO: [Synth 8-6155] done synthesizing module 'heightmap_bram' (1#1) [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/wrapper/heightmap_bram.sv:5]
+INFO: [Synth 8-6157] synthesizing module 'ray_unit' [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/ray_unit.sv:54]
+	Parameter W bound to: 32'sb00000000000000000000001010000000 
+	Parameter H bound to: 32'sb00000000000000000000000111100000 
+	Parameter POS_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter POS_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter POS_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter DIR_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter DIR_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter DIR_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter UV_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter UV_I bound to: 32'sb00000000000000000000000000000001 
+	Parameter K_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter K_I bound to: 32'sb00000000000000000000000000000000 
+	Parameter K_U bound to: 16'sb0000000010001001 
+	Parameter K_V bound to: 16'sb0000000010001001 
+	Parameter GRID_N bound to: 32'sb00000000000000000000000001000000 
+	Parameter IDX_W bound to: 32'sb00000000000000000000000000000110 
+	Parameter H_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter H_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter H_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter N_STEPS bound to: 32'sb00000000000000000000000000010000 
+	Parameter STEP_W bound to: 32'sb00000000000000000000000000000101 
+	Parameter PX_W bound to: 32'sb00000000000000000000000000001010 
+	Parameter PY_W bound to: 32'sb00000000000000000000000000001001 
+	Parameter SKY_R bound to: 8'b10000111 
+	Parameter SKY_G bound to: 8'b11001110 
+	Parameter SKY_B bound to: 8'b11101011 
+	Parameter PALE_R bound to: 8'b11000000 
+	Parameter PALE_G bound to: 8'b11000000 
+	Parameter PALE_B bound to: 8'b11000000 
+	Parameter AMBIENT bound to: 8'b01000000 
+INFO: [Synth 8-6157] synthesizing module 'ray_gen' [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/ray_gen.sv:2]
+	Parameter W bound to: 32'sb00000000000000000000001010000000 
+	Parameter H bound to: 32'sb00000000000000000000000111100000 
+	Parameter PX_W bound to: 32'sb00000000000000000000000000001010 
+	Parameter PY_W bound to: 32'sb00000000000000000000000000001001 
+	Parameter DIR_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter DIR_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter DIR_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter UV_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter UV_I bound to: 32'sb00000000000000000000000000000001 
+	Parameter UV_F bound to: 32'sb00000000000000000000000000001110 
+	Parameter K_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter K_I bound to: 32'sb00000000000000000000000000000000 
+	Parameter K_F bound to: 32'sb00000000000000000000000000001111 
+	Parameter K_U bound to: 16'sb0000000010001001 
+	Parameter K_V bound to: 16'sb0000000010001001 
+	Parameter N_DELAY bound to: 32'sb00000000000000000000000000000100 
+	Parameter PXC_W bound to: 32'sb00000000000000000000000000001011 
+	Parameter PYC_W bound to: 32'sb00000000000000000000000000001010 
+	Parameter RAW_UV_W bound to: 32'sb00000000000000000000000000011011 
+	Parameter UV_SHIFT bound to: 32'sb00000000000000000000000000000001 
+	Parameter PROD_W bound to: 32'sb00000000000000000000000000100000 
+	Parameter SUM_SHIFT bound to: 32'sb00000000000000000000000000001110 
+INFO: [Synth 8-6155] done synthesizing module 'ray_gen' (2#1) [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/ray_gen.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'marcher' [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/marcher.sv:27]
+	Parameter POS_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter POS_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter POS_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter DIR_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter DIR_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter DIR_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter GRID_N bound to: 32'sb00000000000000000000000001000000 
+	Parameter IDX_W bound to: 32'sb00000000000000000000000000000110 
+	Parameter H_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter H_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter H_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter PX_W bound to: 32'sb00000000000000000000000000001010 
+	Parameter PY_W bound to: 32'sb00000000000000000000000000001001 
+	Parameter N_STEPS bound to: 32'sb00000000000000000000000000010000 
+	Parameter STEP_W bound to: 32'sb00000000000000000000000000000101 
+	Parameter WORLD_HALF bound to: 16'sb0010000000000000 
+	Parameter DT bound to: 16'sb0000000100000000 
+	Parameter LATENCY bound to: 32'sb00000000000000000000000001000000 
+INFO: [Synth 8-6157] synthesizing module 'march_step' [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/march_step.sv:33]
+	Parameter POS_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter POS_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter POS_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter DIR_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter DIR_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter DIR_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter GRID_N bound to: 32'sb00000000000000000000000001000000 
+	Parameter IDX_W bound to: 32'sb00000000000000000000000000000110 
+	Parameter H_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter H_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter H_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter STEP_W bound to: 32'sb00000000000000000000000000000101 
+	Parameter WORLD_HALF bound to: 16'sb0010000000000000 
+	Parameter DT bound to: 16'sb0000000100000000 
+	Parameter ST_MARCHING bound to: 2'b00 
+	Parameter ST_HIT bound to: 2'b01 
+	Parameter ST_OFFGRID bound to: 2'b10 
+	Parameter W2G_SHIFT bound to: 32'sb00000000000000000000000000001000 
+	Parameter H_ALIGN_SHIFT bound to: 32'sb00000000000000000000000000000000 
+INFO: [Synth 8-6155] done synthesizing module 'march_step' (3#1) [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/march_step.sv:33]
+INFO: [Synth 8-6155] done synthesizing module 'marcher' (4#1) [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/marcher.sv:27]
+INFO: [Synth 8-6157] synthesizing module 'normal' [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/normal.sv:28]
+	Parameter GRID_N bound to: 32'sb00000000000000000000000001000000 
+	Parameter IDX_W bound to: 32'sb00000000000000000000000000000110 
+	Parameter H_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter H_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter H_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter DIR_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter DIR_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter DIR_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter PX_W bound to: 32'sb00000000000000000000000000001010 
+	Parameter PY_W bound to: 32'sb00000000000000000000000000001001 
+	Parameter STEP_W bound to: 32'sb00000000000000000000000000000101 
+	Parameter ST_HIT bound to: 2'b01 
+	Parameter NZ_CONST bound to: 16'sb0010000000000000 
+	Parameter SAT_POS bound to: 32'sb00000000000000000111111111111111 
+	Parameter SAT_NEG bound to: 32'sb11111111111111111000000000000000 
+INFO: [Synth 8-6155] done synthesizing module 'normal' (5#1) [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/normal.sv:28]
+INFO: [Synth 8-6157] synthesizing module 'shader' [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/shader.sv:25]
+	Parameter H_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter H_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter H_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter DIR_W bound to: 32'sb00000000000000000000000000010000 
+	Parameter DIR_I bound to: 32'sb00000000000000000000000000000010 
+	Parameter DIR_F bound to: 32'sb00000000000000000000000000001101 
+	Parameter N_STEPS bound to: 32'sb00000000000000000000000000010000 
+	Parameter STEP_W bound to: 32'sb00000000000000000000000000000101 
+	Parameter PX_W bound to: 32'sb00000000000000000000000000001010 
+	Parameter PY_W bound to: 32'sb00000000000000000000000000001001 
+	Parameter SKY_R bound to: 8'b10000111 
+	Parameter SKY_G bound to: 8'b11001110 
+	Parameter SKY_B bound to: 8'b11101011 
+	Parameter PALE_R bound to: 8'b11000000 
+	Parameter PALE_G bound to: 8'b11000000 
+	Parameter PALE_B bound to: 8'b11000000 
+	Parameter AMBIENT bound to: 8'b01000000 
+	Parameter ST_HIT bound to: 2'b01 
+INFO: [Synth 8-6155] done synthesizing module 'shader' (6#1) [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/shader.sv:25]
+INFO: [Synth 8-6155] done synthesizing module 'ray_unit' (7#1) [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/hdl/ray_unit.sv:54]
+INFO: [Synth 8-6155] done synthesizing module 'ray_unit_top' (8#1) [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/wrapper/ray_unit_top.sv:18]
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:05 . Memory (MB): peak = 1214.816 ; gain = 105.879
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:03 ; elapsed = 00:00:05 . Memory (MB): peak = 1214.816 ; gain = 105.879
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:03 ; elapsed = 00:00:05 . Memory (MB): peak = 1214.816 ; gain = 105.879
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.171 . Memory (MB): peak = 1214.816 ; gain = 0.000
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/wrapper/constraints.xdc]
+Finished Parsing XDC File [C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/src/wrapper/constraints.xdc]
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 1597.430 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.102 . Memory (MB): peak = 1597.430 ; gain = 0.000
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:11 ; elapsed = 00:00:16 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7a100tcsg324-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:11 ; elapsed = 00:00:16 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:11 ; elapsed = 00:00:16 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:14 ; elapsed = 00:00:20 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input   32 Bit       Adders := 1     
+	   2 Input   17 Bit       Adders := 32    
+	   3 Input   17 Bit       Adders := 2     
+	   3 Input   16 Bit       Adders := 3     
+	   2 Input   16 Bit       Adders := 48    
+	   2 Input   11 Bit       Adders := 1     
+	   2 Input   10 Bit       Adders := 1     
+	   2 Input    9 Bit       Adders := 1     
+	   2 Input    8 Bit       Adders := 3     
+	   2 Input    7 Bit       Adders := 1     
+	   2 Input    6 Bit       Adders := 4     
+	   2 Input    5 Bit       Adders := 16    
++---Registers : 
+	               32 Bit    Registers := 3     
+	               16 Bit    Registers := 501   
+	               11 Bit    Registers := 1     
+	               10 Bit    Registers := 78    
+	                9 Bit    Registers := 78    
+	                8 Bit    Registers := 15    
+	                7 Bit    Registers := 1     
+	                6 Bit    Registers := 140   
+	                5 Bit    Registers := 68    
+	                2 Bit    Registers := 72    
+	                1 Bit    Registers := 142   
++---Muxes : 
+	   4 Input   32 Bit        Muxes := 1     
+	   2 Input   32 Bit        Muxes := 1     
+	   2 Input   16 Bit        Muxes := 70    
+	   6 Input   16 Bit        Muxes := 2     
+	   2 Input    9 Bit        Muxes := 1     
+	   4 Input    8 Bit        Muxes := 3     
+	   2 Input    8 Bit        Muxes := 1     
+	   4 Input    7 Bit        Muxes := 1     
+	   2 Input    6 Bit        Muxes := 32    
+	   4 Input    6 Bit        Muxes := 1     
+	   4 Input    5 Bit        Muxes := 1     
+	   4 Input    2 Bit        Muxes := 16    
+	   2 Input    2 Bit        Muxes := 50    
+	   2 Input    1 Bit        Muxes := 36    
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 240 (col length:80)
+BRAMs: 270 (col length: RAMB18 80 RAMB36 40)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+DSP Report: Generating DSP u_ray_unit/u_ray_gen/u_raw_s1_reg, operation Mode is: (A2*(B:0x89))'.
+DSP Report: register u_ray_unit/u_ray_gen/px_c_s0_reg is absorbed into DSP u_ray_unit/u_ray_gen/u_raw_s1_reg.
+DSP Report: register u_ray_unit/u_ray_gen/u_raw_s1_reg is absorbed into DSP u_ray_unit/u_ray_gen/u_raw_s1_reg.
+DSP Report: operator u_ray_unit/u_ray_gen/u_raw_s10 is absorbed into DSP u_ray_unit/u_ray_gen/u_raw_s1_reg.
+DSP Report: Generating DSP u_ray_unit/u_ray_gen/v_raw_s1_reg, operation Mode is: (((D:0xf0)-A2)*(B:0x89))'.
+DSP Report: register py_cnt_reg is absorbed into DSP u_ray_unit/u_ray_gen/v_raw_s1_reg.
+DSP Report: register u_ray_unit/u_ray_gen/v_raw_s1_reg is absorbed into DSP u_ray_unit/u_ray_gen/v_raw_s1_reg.
+DSP Report: register u_ray_unit/u_ray_gen/py_c_s0_reg is absorbed into DSP u_ray_unit/u_ray_gen/v_raw_s1_reg.
+DSP Report: operator u_ray_unit/u_ray_gen/v_raw_s10 is absorbed into DSP u_ray_unit/u_ray_gen/v_raw_s1_reg.
+DSP Report: operator u_ray_unit/u_ray_gen/py_c_s00 is absorbed into DSP u_ray_unit/u_ray_gen/v_raw_s1_reg.
+DSP Report: Generating DSP u_ray_unit/u_shader/fogged_g_s42, operation Mode is: ((D:0x20)+A)*B.
+DSP Report: register u_ray_unit/u_shader/base_g_s3_reg is absorbed into DSP u_ray_unit/u_shader/fogged_g_s42.
+DSP Report: operator u_ray_unit/u_shader/base_g_s30 is absorbed into DSP u_ray_unit/u_shader/fogged_g_s42.
+DSP Report: operator u_ray_unit/u_shader/fogged_g_s42 is absorbed into DSP u_ray_unit/u_shader/fogged_g_s42.
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:37 ; elapsed = 00:00:52 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+DSP: Preliminary Mapping	Report (see note below)
++-------------+---------------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name  | DSP Mapping               | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++-------------+---------------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|ray_gen      | (A2*(B:0x89))'            | 11     | 9      | -      | -      | 20     | 1    | 0    | -    | -    | -     | 1    | 0    | 
+|ray_unit_top | (((D:0xf0)-A2)*(B:0x89))' | 9      | 9      | -      | 9      | 19     | 1    | 0    | -    | 0    | 1     | 1    | 0    | 
+|shader       | ((D:0x20)+A)*B            | 6      | 8      | -      | 6      | 15     | 0    | 0    | -    | 0    | 1     | 0    | 0    | 
++-------------+---------------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+Note: The table above is a preliminary report that shows the DSPs inferred at the current stage of the synthesis flow. Some DSP may be reimplemented as non DSP primitives later in the synthesis flow. Multiple instantiated DSPs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:41 ; elapsed = 00:00:57 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:42 ; elapsed = 00:00:58 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:00:43 ; elapsed = 00:00:59 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:00:45 ; elapsed = 00:01:01 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:45 ; elapsed = 00:01:01 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:45 ; elapsed = 00:01:02 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:45 ; elapsed = 00:01:02 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:45 ; elapsed = 00:01:02 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:45 ; elapsed = 00:01:02 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Static Shift Register Report:
++-------------+-------------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|Module Name  | RTL Name                                              | Length | Width | Reset Signal | Pull out first Reg | Pull out last Reg | SRL16E | SRLC32E | 
++-------------+-------------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|ray_unit_top | u_ray_unit/u_marcher/g_march[0].u_step/Pz_out_reg[12] | 4      | 328   | NO           | NO                 | YES               | 328    | 0       | 
+|ray_unit_top | u_ray_unit/u_marcher/g_march[0].u_step/Dz_out_reg[6]  | 5      | 18    | NO           | YES                | YES               | 18     | 0       | 
+|ray_unit_top | u_ray_unit/u_marcher/g_march[0].u_step/Dx_out_reg[15] | 3      | 193   | NO           | NO                 | YES               | 193    | 0       | 
+|ray_unit_top | u_ray_unit/u_marcher/g_march[1].u_step/Px_out_reg[7]  | 4      | 331   | NO           | YES                | YES               | 331    | 0       | 
+|ray_unit_top | u_ray_unit/u_marcher/px_pipe_reg[63][9]               | 68     | 10    | NO           | NO                 | NO                | 0      | 30      | 
+|ray_unit_top | u_ray_unit/u_marcher/py_pipe_reg[63][8]               | 68     | 9     | NO           | NO                 | NO                | 0      | 27      | 
+|ray_unit_top | u_ray_unit/u_shader/stat_s4_reg[1]                    | 8      | 2     | NO           | NO                 | YES               | 2      | 0       | 
+|ray_unit_top | u_ray_unit/u_normal/step_count_out_reg[4]             | 5      | 5     | NO           | NO                 | YES               | 5      | 0       | 
+|ray_unit_top | u_ray_unit/u_shader/px_out_reg[9]                     | 9      | 10    | NO           | NO                 | YES               | 10     | 0       | 
+|ray_unit_top | u_ray_unit/u_shader/py_out_reg[8]                     | 9      | 9     | NO           | NO                 | YES               | 9      | 0       | 
++-------------+-------------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+--------+------+
+|      |Cell    |Count |
++------+--------+------+
+|1     |BUFG    |     1|
+|2     |CARRY4  |   348|
+|3     |DSP48E1 |     3|
+|6     |LUT1    |   178|
+|7     |LUT2    |   366|
+|8     |LUT3    |   180|
+|9     |LUT4    |   550|
+|10    |LUT5    |    73|
+|11    |LUT6    |    79|
+|12    |SRL16E  |   896|
+|13    |SRLC32E |    57|
+|14    |FDRE    |  2060|
+|15    |FDSE    |    15|
+|16    |IBUF    |     2|
+|17    |OBUF    |    44|
++------+--------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:45 ; elapsed = 00:01:02 . Memory (MB): peak = 1597.430 ; gain = 488.492
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 0 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:36 ; elapsed = 00:00:55 . Memory (MB): peak = 1597.430 ; gain = 105.879
+Synthesis Optimization Complete : Time (s): cpu = 00:00:45 ; elapsed = 00:01:02 . Memory (MB): peak = 1597.430 ; gain = 488.492
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.052 . Memory (MB): peak = 1597.430 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 351 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1597.430 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+INFO: [Common 17-83] Releasing license: Synthesis
+30 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:00:48 ; elapsed = 00:01:07 . Memory (MB): peak = 1597.430 ; gain = 488.492
+INFO: [Common 17-1381] The checkpoint 'C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/vivado_project/ray_renderer.runs/synth_1/ray_unit_top.dcp' has been generated.
+INFO: [runtcl-4] Executing : report_utilization -file ray_unit_top_utilization_synth.rpt -pb ray_unit_top_utilization_synth.pb
+INFO: [Common 17-206] Exiting Vivado at Tue May 26 11:19:46 2026...

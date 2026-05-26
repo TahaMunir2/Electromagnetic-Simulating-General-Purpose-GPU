@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2020.2 (64-bit)
+# SW Build 3064766 on Wed Nov 18 09:12:45 MST 2020
+# IP Build 3064653 on Wed Nov 18 14:17:31 MST 2020
+# Start of session at: Tue May 26 11:19:55 2026
+# Process ID: 5500
+# Current directory: C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/vivado_project/ray_renderer.runs/impl_1
+# Command line: vivado.exe -log ray_unit_top.vdi -applog -product Vivado -messageDb vivado.pb -mode batch -source ray_unit_top.tcl -notrace
+# Log file: C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/vivado_project/ray_renderer.runs/impl_1/ray_unit_top.vdi
+# Journal file: C:/Users/taham/Downloads/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/ElectroMagnetic-FPGA-3D-Renderer-rendering_new_new/vivado_project/ray_renderer.runs/impl_1\vivado.jou
+#-----------------------------------------------------------
+source ray_unit_top.tcl -notrace

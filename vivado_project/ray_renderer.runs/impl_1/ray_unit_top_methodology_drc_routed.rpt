@@ -1,0 +1,61 @@
+Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2020.2 (win64) Build 3064766 Wed Nov 18 09:12:45 MST 2020
+| Date         : Tue May 26 11:20:42 2026
+| Host         : Taha running 64-bit major release  (build 9200)
+| Command      : report_methodology -file ray_unit_top_methodology_drc_routed.rpt -pb ray_unit_top_methodology_drc_routed.pb -rpx ray_unit_top_methodology_drc_routed.rpx
+| Design       : ray_unit_top
+| Device       : xc7a100tcsg324-1
+| Speed File   : -1
+| Design State : Fully Routed
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Report Methodology
+
+Table of Contents
+-----------------
+1. REPORT SUMMARY
+2. REPORT DETAILS
+
+1. REPORT SUMMARY
+-----------------
+            Netlist: netlist
+          Floorplan: design_1
+      Design limits: <entire design considered>
+             Max violations: <unlimited>
+             Violations found: 5
++----------+----------+--------------------------+------------+
+| Rule     | Severity | Description              | Violations |
++----------+----------+--------------------------+------------+
+| SYNTH-9  | Warning  | Small multiplier         | 4          |
+| SYNTH-13 | Warning  | combinational multiplier | 1          |
++----------+----------+--------------------------+------------+
+
+2. REPORT DETAILS
+-----------------
+SYNTH-9#1 Warning
+Small multiplier  
+Detected multiplier at u_ray_unit/u_shader/fog_int_s1_reg[1]_i_1 of size 9x6, it is implemented as LUTs due to its small size. To force the multiplier onto a DSP block, use the USE_DSP48 attribute.
+Related violations: <none>
+
+SYNTH-9#2 Warning
+Small multiplier  
+Detected multiplier at u_ray_unit/u_shader/fog_int_s1_reg[31]_i_1 of size 9x6, it is implemented as LUTs due to its small size. To force the multiplier onto a DSP block, use the USE_DSP48 attribute.
+Related violations: <none>
+
+SYNTH-9#3 Warning
+Small multiplier  
+Detected multiplier at u_ray_unit/u_shader/fog_int_s1_reg[5]_i_1 of size 9x6, it is implemented as LUTs due to its small size. To force the multiplier onto a DSP block, use the USE_DSP48 attribute.
+Related violations: <none>
+
+SYNTH-9#4 Warning
+Small multiplier  
+Detected multiplier at u_ray_unit/u_shader/fog_int_s1_reg[9]_i_1 of size 9x6, it is implemented as LUTs due to its small size. To force the multiplier onto a DSP block, use the USE_DSP48 attribute.
+Related violations: <none>
+
+SYNTH-13#1 Warning
+combinational multiplier  
+Detected combinational multiplier in DSP instance u_ray_unit/u_shader/fogged_g_s42.
+Related violations: <none>
+
+
