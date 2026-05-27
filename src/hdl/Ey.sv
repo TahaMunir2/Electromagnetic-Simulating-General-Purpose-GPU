@@ -19,11 +19,15 @@ module ey #(
     logic signed [2*FP_WIDTH:0] ey_cb_untruncated;
     logic signed [FP_WIDTH-1:0] ey_ca_truncated;
     logic signed [FP_WIDTH-1:0] ey_cb_truncated;
+    logic signed [FP_WIDTH-1:0] ey_ca_reg;
+    logic signed [FP_WIDTH-1:0] ey_cb_reg;
 
     always_ff @(posedge clk) begin
         difference_reg <= bz_right - bz_left;
         ey_1_reg       <= ey_old;
-        ey_new         <= ey_ca_truncated + ey_cb_truncated;
+        ey_ca_reg      <= ey_ca_truncated;
+        ey_cb_reg      <= ey_cb_truncated;
+        ey_new         <= ey_ca_reg + ey_cb_reg;
     end
 
     assign ey_ca_untruncated = ca * ey_1_reg;

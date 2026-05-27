@@ -19,11 +19,15 @@ module ex #(
     logic signed [2*FP_WIDTH:0] ex_cb_untruncated;
     logic signed [FP_WIDTH-1:0] ex_ca_truncated;
     logic signed [FP_WIDTH-1:0] ex_cb_truncated;
+    logic signed [FP_WIDTH-1:0] ex_ca_reg;
+    logic signed [FP_WIDTH-1:0] ex_cb_reg;
 
     always_ff @(posedge clk) begin
         difference_reg <= bz_right - bz_left;
         ex_1_reg       <= ex_old;
-        ex_new         <= ex_ca_truncated - ex_cb_truncated;
+        ex_ca_reg      <= ex_ca_truncated;
+        ex_cb_reg      <= ex_cb_truncated;
+        ex_new         <= ex_ca_reg - ex_cb_reg;
     end
 
     assign ex_ca_untruncated = ca * ex_1_reg;

@@ -21,11 +21,15 @@ module bz #(
     logic signed [2*FP_WIDTH:0] bz_cb_untruncated;
     logic signed [FP_WIDTH-1:0] bz_ca_truncated;
     logic signed [FP_WIDTH-1:0] bz_cb_truncated;
+    logic signed [FP_WIDTH-1:0] bz_ca_reg;
+    logic signed [FP_WIDTH-1:0] bz_cb_reg;
 
     always_ff @(posedge clk) begin
         difference_reg <= (ey_right - ey_left) - (ex_right - ex_left);
         bz_1_reg       <= bz_old;
-        bz_new         <= bz_ca_truncated + bz_cb_truncated;
+        bz_ca_reg      <= bz_ca_truncated;
+        bz_cb_reg      <= bz_cb_truncated;
+        bz_new         <= bz_ca_reg + bz_cb_reg;
     end
 
     assign bz_ca_untruncated = ca * bz_1_reg;

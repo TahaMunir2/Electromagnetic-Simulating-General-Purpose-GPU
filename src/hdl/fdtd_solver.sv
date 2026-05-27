@@ -133,8 +133,8 @@ always_comb begin
     cell_addr   = phase_addr;
     row         = cell_addr / CELLS;
     column      = cell_addr - (row * CELLS);
-    write_valid = (cell_addr >= 3);
-    wr_cell     = write_valid ? (cell_addr - 3'd3) : '0;
+    write_valid = (cell_addr >= 4);
+    wr_cell     = write_valid ? (cell_addr - 3'd4) : '0;
     wr_row      = wr_cell / CELLS;
     wr_column   = wr_cell - (wr_row * CELLS);
 
