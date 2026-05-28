@@ -51,7 +51,7 @@
 //  Throughput (after fill): 1 pixel/cycle.
 // ============================================================================
 
-module ray_unit #(
+module design1_ray_unit #(
     // ----- Image / screen geometry -----
     parameter int W           = 640,
     parameter int H           = 480,
@@ -158,7 +158,7 @@ module ray_unit #(
     // No back-pressure for now; tie to 0.  Will be driven by emit later.
     assign rg_stall = 1'b0;
 
-    ray_gen #(
+    design1_ray_gen #(
         .W      (W),
         .H      (H),
         .DIR_W  (DIR_W),
@@ -198,7 +198,7 @@ module ray_unit #(
     logic [PY_W-1:0]            mc_py;
     logic                       mc_valid;
 
-    marcher #(
+    design1_marcher #(
         .POS_W      (POS_W),
         .POS_I      (POS_I),
         .DIR_W      (DIR_W),
@@ -251,7 +251,7 @@ module ray_unit #(
     logic [PY_W-1:0]            nm_py;
     logic                       nm_valid;
 
-    normal #(
+    design1_normal #(
         .GRID_N     (GRID_N),
         .POS_W      (POS_W),
         .POS_I      (POS_I),
@@ -297,7 +297,7 @@ module ray_unit #(
     // =================================================================
     //  shader  ->  outputs
     // =================================================================
-    shader #(
+    design1_shader #(
         .H_W        (H_W),
         .H_I        (H_I),
         .DIR_W      (DIR_W),

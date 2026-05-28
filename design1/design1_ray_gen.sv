@@ -1,5 +1,5 @@
 
-module ray_gen #(
+module design1_ray_gen #(
     //Image geometry
     parameter int W              = 640,
     parameter int H              = 480,

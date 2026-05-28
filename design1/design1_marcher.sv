@@ -24,7 +24,7 @@
 //  our SDF is just a BRAM lookup, not a 26-cycle Perlin pipeline).
 // ============================================================================
 
-module marcher #(
+module design1_marcher #(
     // ----- Geometry / format parameters (must match ray_gen, heightmap) -----
     parameter int POS_W      = 16,
     parameter int POS_I      = 4,
@@ -142,7 +142,7 @@ module marcher #(
     genvar gi;
     generate
         for (gi = 0; gi < N_STEPS; gi++) begin : g_march
-            march_step #(
+            design1_march_step #(
                 .POS_W      (POS_W),
                 .POS_I      (POS_I),
                 .POS_F      (POS_F),

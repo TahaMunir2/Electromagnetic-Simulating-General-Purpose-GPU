@@ -22,7 +22,7 @@
 //  grow by 4 (ray_unit total: 73 -> 77).
 // ============================================================================
 
-module shader #(
+module design1_shader #(
     parameter int H_W        = 16,
     parameter int H_I        = 4,
     parameter int H_F        = H_W - 1 - H_I,

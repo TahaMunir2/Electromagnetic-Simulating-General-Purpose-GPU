@@ -40,7 +40,7 @@
 //  Total latency: 5 cycles (was 4).  Throughput: 1 pixel / cycle.
 // ============================================================================
 
-module normal #(
+module design1_normal #(
     parameter int GRID_N     = 256,
     parameter int IDX_W      = $clog2(GRID_N),
 

@@ -30,7 +30,7 @@
 //  Bug 2 fix: step 0 never declares a HIT, it only establishes prev_below.
 // ============================================================================
 
-module march_step #(
+module design1_march_step #(
     // ----- Position fixed-point format -----
     parameter int POS_W      = 16,
     parameter int POS_I      = 4,
